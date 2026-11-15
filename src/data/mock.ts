@@ -135,9 +135,9 @@ export const INITIAL_TODAY: DayTotals = {
 /* ---- Мок-база распознавания еды (потом заменит ответ нейронки) ---- */
 export const MOCK_MEALS: MealEstimate[] = [
   {
-    name: "Классический чизбургер",
-    sub: "Булочка, котлета, чеддер и компания.",
-    kcal: 640, protein: 32, carbs: 47, fat: 36,
+    name: "Гамбургер",
+    sub: "Булочка с кунжутом, котлета, огурец и соус.",
+    kcal: 500, protein: 25, carbs: 40, fat: 24,
   },
   {
     name: "Овсянка с бананом и мёдом",

@@ -10,14 +10,6 @@ import { MOCK_MEALS, type MealEstimate } from "../data/mock";
 
 const API_URL = import.meta.env.VITE_VISION_API_URL as string | undefined;
 
-function hashString(s: string): number {
-  let h = 5381;
-  for (let i = 0; i < s.length; i += 4) {
-    h = (h * 33) ^ s.charCodeAt(i) ^ s.charCodeAt(i + 1);
-  }
-  return Math.abs(h);
-}
-
 export async function recognizeMeal(photo: string): Promise<MealEstimate> {
   if (API_URL) {
     try {
@@ -28,12 +20,11 @@ export async function recognizeMeal(photo: string): Promise<MealEstimate> {
       });
       if (res.ok) return (await res.json()) as MealEstimate;
     } catch {
-      // упадём в мок ниже
+      // упадём в дефолт ниже
     }
   }
 
-  // мок: небольшая «задумчивость» + стабильный выбор по содержимому фото
+  // мок-дефолт: обычный гамбургер (первый в MOCK_MEALS), с небольшой «задумчивостью»
   await new Promise((r) => setTimeout(r, 1400));
-  const key = photo ?? "demo-burger";
-  return MOCK_MEALS[hashString(key) % MOCK_MEALS.length];
+  return MOCK_MEALS[0];
 }
