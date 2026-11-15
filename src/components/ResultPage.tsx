@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import backIcon from "../assets/back.svg";
 import moreIcon from "../assets/more.svg";
 import scanSuccess from "../assets/scan-success.svg";
@@ -12,6 +12,9 @@ import coachFace from "../assets/coach-face.svg";
 import coachFaceCalm from "../assets/coach-face-calm.svg";
 import flameIcon from "../assets/flame.svg";
 import dropletIcon from "../assets/droplet.svg";
+import { recognizeMeal } from "../services/vision";
+import { macroBars, type MealEstimate } from "../data/mock";
+import { addMeal } from "../store";
 
 const COACH_LINES = {
   angry: {
@@ -59,7 +62,21 @@ function Mascot({ mad }: { mad: boolean }) {
 
 export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): void }) {
   const [mode, setMode] = useState<"angry" | "calm">("angry");
+  const [meal, setMeal] = useState<MealEstimate | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    setMeal(null);
+    recognizeMeal(photo ?? "demo").then((m) => {
+      if (alive) setMeal(m);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [photo]);
+
   const quote = COACH_LINES[mode];
+  const bars = meal ? macroBars(meal) : [];
 
   return (
     <main className="content fs-scope">
@@ -77,92 +94,117 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
         <img className="fs-food" src={photo ?? burger} alt="Сфотографированная еда" />
         <div className="fs-badge">
           <img src={scanSuccess} alt="" />
-          <span>Скан готов</span>
+          <span>{meal ? "Скан готов" : "Анализирую фото…"}</span>
         </div>
         <div className="fs-caption">
-          <span>1 бургер</span>
+          <span>1 порция</span>
         </div>
       </div>
 
-      <div className="fs-id">
-        <h2>Классический чизбургер</h2>
-        <p className="fs-id-sub">Булочка, котлета, чеддер и компания.</p>
-        <button className="fs-id-edit" aria-label="Изменить детали">
-          <img src={editIcon} alt="" />
-        </button>
-      </div>
-
-      <div className="fs-nutri">
-        <div className="fs-nutri-head">
-          <div className="fs-kcal">
-            <p className="fs-kcal-num">640</p>
-            <p className="fs-kcal-unit">ккал</p>
-          </div>
-          <span className="fs-est">≈ оценка по фото</span>
-        </div>
-        <div className="fs-rows">
-          <div className="fs-mrow">
-            <span className="fs-mrow-label">Белки</span>
-            <div className="fs-mrow-track">
-              <span style={{ width: "39%", background: "#8a0027" }} />
-            </div>
-            <span className="fs-mrow-val">32 г</span>
-          </div>
-          <div className="fs-mrow">
-            <span className="fs-mrow-label">Углеводы</span>
-            <div className="fs-mrow-track">
-              <span style={{ width: "57%", background: "#b76b80" }} />
-            </div>
-            <span className="fs-mrow-val">47 г</span>
-          </div>
-          <div className="fs-mrow">
-            <span className="fs-mrow-label">Жиры</span>
-            <div className="fs-mrow-track">
-              <span style={{ width: "100%", background: "#d8aebb" }} />
-            </div>
-            <span className="fs-mrow-val">36 г</span>
-          </div>
-        </div>
-        <p className="fs-note">Оценка по фото может отличаться. Детали можно изменить.</p>
-      </div>
-
-      <section className="fs-coach">
-        <div className="fs-coach-head">
-          <h2 className="fs-coach-mode">Режим коуча</h2>
-          <div className="fs-mood">
-            <button
-              className={mode === "angry" ? "on" : ""}
-              onClick={() => setMode("angry")}
-              aria-label="Злой коуч"
-            >
-              <img src={flameIcon} alt="" />
-            </button>
-            <button
-              className={mode === "calm" ? "on" : ""}
-              onClick={() => setMode("calm")}
-              aria-label="Спокойный коуч"
-            >
-              <img src={dropletIcon} alt="" />
+      {meal ? (
+        <>
+          <div className="fs-id">
+            <h2>{meal.name}</h2>
+            <p className="fs-id-sub">{meal.sub}</p>
+            <button className="fs-id-edit" aria-label="Изменить детали">
+              <img src={editIcon} alt="" />
             </button>
           </div>
-        </div>
-        <div className={"fs-coach-row" + (mode === "angry" ? " mad" : "")}>
-          <Mascot mad={mode === "angry"} />
-          <div className="fs-bubble">
-            <p className="fs-bubble-title">{quote.title}</p>
-            <div className="fs-bubble-text">
-              {quote.lines.map((l) => (
-                <p key={l}>{l}</p>
+
+          <div className="fs-nutri">
+            <div className="fs-nutri-head">
+              <div className="fs-kcal">
+                <p className="fs-kcal-num">{meal.kcal}</p>
+                <p className="fs-kcal-unit">ккал</p>
+              </div>
+              <span className="fs-est">≈ оценка по фото</span>
+            </div>
+            <div className="fs-rows">
+              {bars.map((b) => (
+                <div className="fs-mrow" key={b.label}>
+                  <span className="fs-mrow-label">{b.label}</span>
+                  <div className="fs-mrow-track">
+                    <span
+                      style={{
+                        width: `${b.frac * 100}%`,
+                        background: b.color,
+                        transition: "width 0.6s cubic-bezier(0.22, 0.8, 0.36, 1)",
+                      }}
+                    />
+                  </div>
+                  <span className="fs-mrow-val">{b.value}</span>
+                </div>
+              ))}
+            </div>
+            <p className="fs-note">Оценка по фото может отличаться. Детали можно изменить.</p>
+          </div>
+
+          <section className="fs-coach">
+            <div className="fs-coach-head">
+              <h2 className="fs-coach-mode">Режим коуча</h2>
+              <div className="fs-mood">
+                <button
+                  className={mode === "angry" ? "on" : ""}
+                  onClick={() => setMode("angry")}
+                  aria-label="Злой коуч"
+                >
+                  <img src={flameIcon} alt="" />
+                </button>
+                <button
+                  className={mode === "calm" ? "on" : ""}
+                  onClick={() => setMode("calm")}
+                  aria-label="Спокойный коуч"
+                >
+                  <img src={dropletIcon} alt="" />
+                </button>
+              </div>
+            </div>
+            <div className={"fs-coach-row" + (mode === "angry" ? " mad" : "")}>
+              <Mascot mad={mode === "angry"} />
+              <div className="fs-bubble">
+                <p className="fs-bubble-title">{quote.title}</p>
+                <div className="fs-bubble-text">
+                  {quote.lines.map((l) => (
+                    <p key={l}>{l}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <button className="fs-cta" onClick={() => { addMeal(meal); onBack(); }}>
+            Добавить в обед
+            <img src={addIcon} alt="" />
+          </button>
+        </>
+      ) : (
+        <>
+          <div className="fs-id">
+            <h2 className="sk sk-line" style={{ width: "62%" }} />
+            <p className="fs-id-sub">
+              <span className="sk sk-line" style={{ width: "70%" }} />
+            </p>
+          </div>
+          <div className="fs-nutri">
+            <div className="fs-nutri-head">
+              <div className="fs-kcal">
+                <p className="fs-kcal-num sk sk-line" style={{ width: 64 }} />
+                <p className="fs-kcal-unit">ккал</p>
+              </div>
+              <span className="fs-est">≈ оценка по фото</span>
+            </div>
+            <div className="fs-rows">
+              {[0, 1, 2].map((i) => (
+                <div className="fs-mrow" key={i}>
+                  <span className="sk sk-line" style={{ width: 52 }} />
+                  <div className="fs-mrow-track" />
+                  <span className="sk sk-line" style={{ width: 40 }} />
+                </div>
               ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      <button className="fs-cta" onClick={onBack}>
-        Добавить в обед
-        <img src={addIcon} alt="" />
-      </button>
+        </>
+      )}
     </main>
   );
 }

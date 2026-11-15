@@ -504,6 +504,9 @@ button {
   width: 11px;
   text-align: center;
 }
+.cweek-bars span.today {
+  background: var(--brand);
+}
 .cweek-labels span.today {
   font-weight: 600;
   color: var(--brand);
@@ -530,6 +533,26 @@ button {
 .scan:active {
   transform: scale(0.97);
   filter: brightness(0.92);
+}
+
+/* ---- скелетон распознавания ---- */
+.sk {
+  display: inline-block;
+  border-radius: 6px;
+  background: var(--track);
+}
+.sk-line {
+  height: 12px;
+  animation: skPulse 1.2s ease-in-out infinite;
+}
+@keyframes skPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
 }
 
 /* ================= переходы страниц ================= */
