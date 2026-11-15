@@ -41,7 +41,7 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
       // контейнер (рамка + подсказка ~31px) центрирован на 50% экрана
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const side = Math.min(330, vw - 36); // .cam-frame: min(330px, 100% - 36px)
+      const side = Math.min(360, vw - 24); // .cam-frame: var(--side)
       const frameCenterY = vh / 2 - 16;
       const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(x, hi));
 
@@ -96,6 +96,10 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
     <div className="cam">
       <video ref={videoRef} playsInline muted />
       {!live && <div className="cam-fallback" />}
+      <div className="cam-blur cam-blur-top" />
+      <div className="cam-blur cam-blur-bottom" />
+      <div className="cam-blur cam-blur-left" />
+      <div className="cam-blur cam-blur-right" />
       <button className="cam-close" onClick={onClose} aria-label="Закрыть камеру">
         <svg viewBox="0 0 20 20" width="18" height="18">
           <path
