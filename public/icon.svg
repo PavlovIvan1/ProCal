@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="115" fill="#f3f2ef"/>
+  <!-- coach mascot: diagonal -45°, huge — head in upper-left, feet cropped off lower-right -->
+  <g transform="rotate(-45 256 256)">
+    <g transform="translate(61.6,88.8) scale(6.9)">
+      <path d="M27 0C47 0 55 10 56 29V49C56 66 47 73 29 73C10 73 0 66 0 49V28C0 9 8 0 27 0Z" fill="#8A0027"/>
+    </g>
+    <g transform="translate(-4.2,326.4) scale(6.9)" fill="none" stroke="#8A0027" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.1283 2.50059C-1.87174 6.50059 -0.871741 19.5006 14.1283 23.5006M62.1283 2.50059C78.1283 6.50059 77.1283 19.5006 62.1283 23.5006"/>
+    </g>
+    <g transform="translate(124.3,204.7) scale(6.9)">
+      <path d="M4.75044 5.25044C6.75044 3.25044 10.2504 3.25044 12.2504 5.25044M25.2504 5.25044C27.2504 3.25044 30.7504 3.25044 32.7504 5.25044" stroke-width="3.5" stroke-linecap="round" stroke="#FFF2DB" fill="none"/>
+      <path d="M6.75044 18.7504C8.95958 18.7504 10.7504 16.5119 10.7504 13.7504C10.7504 10.989 8.95958 8.75044 6.75044 8.75044C4.5413 8.75044 2.75044 10.989 2.75044 13.7504C2.75044 16.5119 4.5413 18.7504 6.75044 18.7504Z" fill="#FFF2DB"/>
+      <path d="M30.7504 18.7504C32.9596 18.7504 34.7504 16.5119 34.7504 13.7504C34.7504 10.989 32.9596 8.75044 30.7504 8.75044C28.5413 8.75044 26.7504 10.989 26.7504 13.7504C26.7504 16.5119 28.5413 18.7504 30.7504 18.7504Z" fill="#FFF2DB"/>
+      <path d="M12.25044 26.25044C14.5004 29.0004 23.0004 29.0004 25.25044 26.25044" stroke-width="3.5" stroke-linecap="round" stroke="#FFF2DB" fill="none"/>
+    </g>
+  </g>
+</svg>
