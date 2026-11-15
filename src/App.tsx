@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import flame from "./assets/flame.svg";
 import droplet from "./assets/droplet.svg";
@@ -31,18 +33,22 @@ function FigIcon(props: {
 const fmt = (n: number) => n.toLocaleString("ru-RU");
 
 function Greeting({ streak }: { streak: number }) {
-  const now = new Date();
+  // дата рендерится только на клиенте (иначе SSR-дата ≠ клиентская → hydration)
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => setNow(new Date()), []);
   const DOW = ["ВОСКРЕСЕНЬЕ", "ПОНЕДЕЛЬНИК", "ВТОРНИК", "СРЕДА", "ЧЕТВЕРГ", "ПЯТНИЦА", "СУББОТА"];
   const MON = ["ЯНВАРЯ", "ФЕВРАЛЯ", "МАРТА", "АПРЕЛЯ", "МАЯ", "ИЮНЯ", "ИЮЛЯ", "АВГУСТА", "СЕНТЯБРЯ", "ОКТЯБРЯ", "НОЯБРЯ", "ДЕКАБРЯ"];
   return (
     <section className="gr">
       <p className="gr-date">
-        {DOW[now.getDay()]}, {now.getDate()} {MON[now.getMonth()]}
+        {now
+          ? `${DOW[now.getDay()]}, ${now.getDate()} ${MON[now.getMonth()]}`
+          : "СЕГОДНЯ"}
       </p>
       <h1 className="gr-title">Доброе утро.</h1>
       <p className="gr-sub">Маленькие шаги. Здоровый ты.</p>
       <div className="gr-badge">
-        <FigIcon src={flame} w={17} group="12.5% 15.36% 14.39% 23.99%" img="-6.84% -8.25% -6.84% -8.24%" />
+        <FigIcon src={flame.src} w={17} group="12.5% 15.36% 14.39% 23.99%" img="-6.84% -8.25% -6.84% -8.24%" />
         <b>{streak} дней</b>
       </div>
     </section>
@@ -104,7 +110,7 @@ function WaterCard() {
   return (
     <section className="cwat">
       <h2 className="cwat-title">Вода</h2>
-      <FigIcon src={droplet} w={17} group="12.5% 20.83% 8.33% 20.83%" img="-6.32% -8.57%" className="cwat-drop" />
+      <FigIcon src={droplet.src} w={17} group="12.5% 20.83% 8.33% 20.83%" img="-6.32% -8.57%" className="cwat-drop" />
       <p className="cwat-num">{(today.water / 1000).toFixed(1).replace(".", ",")}</p>
       <p className="cwat-of">из {(goals.water / 1000).toFixed(0)} л</p>
       <div className="cwat-bar">
@@ -199,7 +205,7 @@ function HomePage({ onScan }: { onScan(): void }) {
         <WeekCard />
       </div>
       <button className="scan" onClick={onScan}>
-        <FigIcon src={scanFrame} w={19} group="12.5%" img="-5.96%" />
+        <FigIcon src={scanFrame.src} w={19} group="12.5%" img="-5.96%" />
         Сканировать еду
       </button>
     </main>

@@ -1,5 +1,7 @@
 /* Сбор оценки результата распознавания (лайк/дизлайк).
- * Пока пишем в localStorage — когда появится бэкенд, поменяем на POST. */
+ * Пишем в localStorage (мгновенно) и отправляем на /api/feedback → Supabase. */
+
+import { deviceId } from "./device";
 
 export type FeedbackKind = "up" | "down";
 
@@ -28,6 +30,15 @@ export function sendFeedback(kind: FeedbackKind, meal: string, kcal: number, coa
   } catch {
     // приватный режим и т.п. — просто игнорируем
   }
-  // TODO: POST на бэкенд, когда появится
-  console.info("[feedback]", entry);
+  void fetch("/api/feedback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      deviceId: deviceId(),
+      kind,
+      meal,
+      kcal,
+      coach,
+    }),
+  }).catch(() => {});
 }

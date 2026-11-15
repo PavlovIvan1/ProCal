@@ -1,5 +1,9 @@
-node_modules
-dist
-dev-dist
-.DS_Store
 *.local
+.DS_Store
+.env.local
+.next/
+dev-dist
+dist
+dist/
+node_modules
+node_modules/

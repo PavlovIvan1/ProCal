@@ -12,6 +12,7 @@ import {
   type Heatmap,
   type MealEstimate,
 } from "./data/mock";
+import { deviceId } from "./services/device";
 
 export interface AppState {
   goals: Goals;
@@ -46,10 +47,11 @@ function subscribe(l: () => void) {
 }
 
 export function useStore(): AppState {
-  return useSyncExternalStore(subscribe, () => state);
+  // третий аргумент — снапшот для SSR (мок-данные детерминированы, hydration ок)
+  return useSyncExternalStore(subscribe, () => state, () => state);
 }
 
-/* Добавить распознанное блюдо в «сегодня» (и в неделю) */
+/* Добавить распознанное блюдо в «сегодня» (и в неделю), плюс лог в Supabase */
 export function addMeal(meal: MealEstimate) {
   const today: DayTotals = {
     kcal: state.today.kcal + meal.kcal,
@@ -62,6 +64,19 @@ export function addMeal(meal: MealEstimate) {
     i === 5 ? { ...d, kcal: today.kcal } : d // 5 = сегодня (суббота)
   );
   set({ today, week, meals: [...state.meals, meal] });
+
+  void fetch("/api/meals", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      deviceId: deviceId(),
+      name: meal.name,
+      kcal: meal.kcal,
+      protein: meal.protein,
+      carbs: meal.carbs,
+      fat: meal.fat,
+    }),
+  }).catch(() => {});
 }
 
 /* Вода: +N мл (кнопки на карточке позже) */

@@ -37,21 +37,21 @@ function Mascot() {
     <div className="fs-mascot" aria-hidden="true">
       <div className="fs-mascot-scale">
         <div className="fs-part body">
-          <img src={coachBody} alt="" />
+          <img src={coachBody.src} alt="" />
         </div>
         <div className="fs-part arms">
           <span style={{ inset: "-11.91% -3.51%" }}>
-            <img src={coachArms} alt="" />
+            <img src={coachArms.src} alt="" />
           </span>
         </div>
         <div className="fs-part feet">
           <span style={{ inset: "-35% -9.21%" }}>
-            <img src={coachFeet} alt="" />
+            <img src={coachFeet.src} alt="" />
           </span>
         </div>
         <div className="fs-part face">
           <span style={{ inset: "-6.48% -5.15%" }}>
-            <img src={coachFace} alt="" />
+            <img src={coachFace.src} alt="" />
           </span>
         </div>
       </div>
@@ -88,18 +88,18 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
     <main className="fs-scope">
       <div className="fs-nav">
         <button className="fs-nav-btn fs-nav-back" onClick={onBack} aria-label="Назад">
-          <img src={backIcon} alt="" />
+          <img src={backIcon.src} alt="" />
         </button>
         <button className="fs-nav-btn fs-nav-more" aria-label="Ещё">
-          <img src={moreIcon} alt="" />
+          <img src={moreIcon.src} alt="" />
         </button>
       </div>
 
       {/* фото от края до края; карточка ниже наезжает на него при скролле */}
       <div className="fs-photo">
-        <img className="fs-food" src={photo ?? burger} alt="Сфотографированная еда" />
+        <img className="fs-food" src={photo ?? burger.src} alt="Сфотографированная еда" />
         <div className="fs-badge">
-          <img src={scanSuccess} alt="" />
+          <img src={scanSuccess.src} alt="" />
           <span>{analysis ? "Скан готов" : "Анализирую фото…"}</span>
         </div>
         <div className="fs-caption">
@@ -114,7 +114,7 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
               <h2>{meal.name}</h2>
               <p className="fs-id-sub">{meal.sub}</p>
               <button className="fs-id-edit" aria-label="Изменить детали">
-                <img src={editIcon} alt="" />
+                <img src={editIcon.src} alt="" />
               </button>
             </div>
 
@@ -188,7 +188,7 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
 
             <button className="fs-cta" onClick={() => { addMeal(meal); onBack(); }}>
               Добавить в обед
-              <img src={addIcon} alt="" />
+              <img src={addIcon.src} alt="" />
             </button>
           </>
         ) : (
