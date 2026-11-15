@@ -647,36 +647,14 @@ button {
     radial-gradient(120% 90% at 50% 30%, #2a2126 0%, #17151a 60%, #101013 100%);
 }
 
-/* блюр всего, что за рамкой */
-.cam-blur {
+/* лёгкое затемнение всего за рамкой (без backdrop-filter — он ломает
+ * композитинг видео на iOS Safari) */
+.cam-veil {
   position: absolute;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  background: rgba(8, 6, 8, 0.3);
-}
-.cam-blur-top {
-  top: 0;
-  left: 0;
-  right: 0;
-  height: calc(50% - 16px - var(--side) / 2);
-}
-.cam-blur-bottom {
-  top: calc(50% - 16px + var(--side) / 2);
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-.cam-blur-left {
-  top: calc(50% - 16px - var(--side) / 2);
-  height: var(--side);
-  left: 0;
-  width: calc((100% - var(--side)) / 2);
-}
-.cam-blur-right {
-  top: calc(50% - 16px - var(--side) / 2);
-  height: var(--side);
-  right: 0;
-  width: calc((100% - var(--side)) / 2);
+  inset: 0;
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(10, 8, 10, 0.35);
+  pointer-events: none;
 }
 .cam-close {
   position: absolute;

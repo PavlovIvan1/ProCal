@@ -116,10 +116,6 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
     <div className="cam">
       <video ref={videoRef} playsInline muted />
       {!live && <div className="cam-fallback" />}
-      <div className="cam-blur cam-blur-top" />
-      <div className="cam-blur cam-blur-bottom" />
-      <div className="cam-blur cam-blur-left" />
-      <div className="cam-blur cam-blur-right" />
       {flash && <div className="cam-flash" />}
       <button className="cam-close" onClick={onClose} aria-label="Закрыть камеру">
         <svg viewBox="0 0 20 20" width="18" height="18">
@@ -134,6 +130,7 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
       </button>
       <div className="cam-center">
         <div className="cam-frame" ref={frameRef}>
+          <div className="cam-veil" />
           {shot && <img className="cam-freeze" src={shot} alt="" />}
           <span className="cam-c tl" />
           <span className="cam-c tr" />
