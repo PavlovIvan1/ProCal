@@ -3,11 +3,17 @@
 const R = 66;
 const LEN = Math.PI * R; // длина полуокружности
 
-export function Gauge({ pct, max = 1 }: { pct: number; max?: number }) {
+export function Gauge({ pct, max = 1, className }: { pct: number; max?: number; className?: string }) {
   const p = Math.max(0, Math.min(max, pct));
   const offset = LEN * (1 - p / max);
   return (
-    <svg className="gauge" viewBox="0 0 158 86" width="158" height="86" aria-hidden="true">
+    <svg
+      className={className}
+      viewBox="0 0 158 86"
+      width="158"
+      height="86"
+      aria-hidden="true"
+    >
       <path
         d={`M13 79 A${R} ${R} 0 0 1 145 79`}
         fill="none"

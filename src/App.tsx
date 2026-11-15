@@ -90,7 +90,7 @@ function CalorieCard() {
     <section className="ccal">
       <h2 className="ccal-title">Калории</h2>
       <p className="ccal-sub">{Math.round(pct * 100)}% дневной цели</p>
-      <Gauge pct={pct} />
+      <Gauge className="ccal-gauge" pct={pct} />
       <p className="ccal-num">{fmt(today.kcal)}</p>
       <p className="ccal-of">из {fmt(goals.kcal)} ккал</p>
       <p className="ccal-left">{fmt(left)} ккал осталось</p>
