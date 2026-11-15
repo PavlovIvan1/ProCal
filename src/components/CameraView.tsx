@@ -43,36 +43,49 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
       const vh = window.innerHeight;
       const side = Math.min(330, vw - 36); // .cam-frame: min(330px, 100% - 36px)
       const frameCenterY = vh / 2 - 16;
+      const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(x, hi));
 
-      // iOS Safari рисует кадр в canvas уже повёрнутым (как на экране),
-      // но videoWidth/videoHeight сообщает в ориентации буфера —
-      // поэтому при несовпадении считаем cover-математику по «эффективным» размерам
-      const bw0 = v.videoWidth;
-      const bh0 = v.videoHeight;
-      let bw = bw0;
-      let bh = bh0;
-      if (bw0 > bh0 !== vh >= vw) {
-        bw = bh0;
-        bh = bw0;
-      }
-
-      // пересчёт области экрана в пиксели видео (object-fit: cover)
-      const scale = Math.max(vw / bw, vh / bh);
-      const offX = (vw - bw * scale) / 2;
-      const offY = (vh - bh * scale) / 2;
-      let sx = (vw - side) / 2 - offX;
-      let sy = frameCenterY - side / 2 - offY;
-      const size = side / scale;
-      sx = Math.max(0, Math.min(sx, bw - size));
-      sy = Math.max(0, Math.min(sy, bh - size));
-
-      const c = document.createElement("canvas");
-      c.width = 720;
-      c.height = 720;
-      const ctx = c.getContext("2d");
-      if (ctx) {
+      /* WebKit врёт с videoWidth/Height (может отдавать ориентацию буфера,
+       * а рисовать повёрнутый кадр). Пробуем обе интерпретации и берём ту,
+       * где вырезка не выходит за настоящий кадр (нет чёрных/прозрачных краёв). */
+      const tryCrop = (swapped: boolean) => {
+        let bw = v.videoWidth;
+        let bh = v.videoHeight;
+        if (swapped) [bw, bh] = [bh, bw];
+        const scale = Math.max(vw / bw, vh / bh);
+        const offX = (vw - bw * scale) / 2;
+        const offY = (vh - bh * scale) / 2;
+        const size = side / scale;
+        const sx = clamp((vw - side) / 2 - offX, 0, bw - size);
+        const sy = clamp(frameCenterY - side / 2 - offY, 0, bh - size);
+        const c = document.createElement("canvas");
+        c.width = 720;
+        c.height = 720;
+        const ctx = c.getContext("2d", { willReadFrequently: true });
+        if (!ctx) return null;
         ctx.drawImage(v, sx, sy, size, size, 0, 0, 720, 720);
-        onCapture(c.toDataURL("image/jpeg", 0.85));
+        // проверка краёв: прозрачный или почти чёрный = вырезка мимо кадра
+        const d = ctx.getImageData(0, 0, 720, 720).data;
+        const probes = [
+          [8, 8], [711, 8], [8, 711], [711, 711],
+          [360, 8], [8, 360], [711, 360], [360, 711],
+        ];
+        let bad = 0;
+        for (const [x, y] of probes) {
+          const i = (y * 720 + x) * 4;
+          const lum = (d[i] + d[i + 1] + d[i + 2]) / 3;
+          if (d[i + 3] < 16 || lum < 6) bad++;
+        }
+        return { canvas: c, ok: bad <= 1 };
+      };
+
+      let result = tryCrop(false);
+      if (!result || !result.ok) {
+        const alt = tryCrop(true);
+        if (alt && (result == null || alt.ok)) result = alt;
+      }
+      if (result) {
+        onCapture(result.canvas.toDataURL("image/jpeg", 0.85));
         return;
       }
     }
