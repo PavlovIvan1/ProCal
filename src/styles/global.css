@@ -778,6 +778,50 @@ button {
   transform: scale(0.86);
 }
 
+/* вспышка при скане */
+.cam-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  z-index: 6;
+  pointer-events: none;
+  animation: camFlash 0.48s ease-out both;
+}
+@keyframes camFlash {
+  from {
+    opacity: 0.9;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* «заморозка»: захваченный кадр строго в рамке, скруглён как скобки */
+.cam-freeze {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  z-index: 1;
+  pointer-events: none;
+  animation: camFreeze 0.45s cubic-bezier(0.22, 0.8, 0.36, 1) both;
+}
+@keyframes camFreeze {
+  from {
+    opacity: 0.55;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.cam-c {
+  z-index: 2; /* скобки поверх замороженного кадра */
+}
+
 /* ================= result page ================= */
 .fs-scope {
   padding-top: 14px;

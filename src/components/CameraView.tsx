@@ -4,13 +4,20 @@ import { useEffect, useRef, useState } from "react";
  *  viewfinder when no camera is available, the flow still works. */
 export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(photo: string | null): void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState(false);
+  const [flash, setFlash] = useState(false);
+  const [shot, setShot] = useState<string | null>(null);
 
   useEffect(() => {
     let stream: MediaStream | undefined;
     let cancelled = false;
     const request = navigator.mediaDevices?.getUserMedia({
-      video: { facingMode: "environment" },
+      video: {
+        facingMode: "environment",
+        width: { ideal: 1920 },
+        height: { ideal: 1920 },
+      },
       audio: false,
     });
     request
@@ -34,45 +41,58 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
     };
   }, []);
 
+  /* Финал скана: вспышка + «заморозка» кадра прямо в рамке, потом переход */
+  const finish = (url: string | null) => {
+    if (!url) {
+      onCapture(null);
+      return;
+    }
+    setShot(url);
+    setFlash(true);
+    setTimeout(() => setFlash(false), 480);
+    setTimeout(() => onCapture(url), 640);
+  };
+
   const capture = () => {
+    if (shot) return; // ждём перехода
     const v = videoRef.current;
-    if (live && v && v.videoWidth > 0) {
-      // размер и позиция рамки ровно как в CSS (.cam-frame, .cam-center):
-      // контейнер (рамка + подсказка ~31px) центрирован на 50% экрана
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const side = Math.min(360, vw - 24); // .cam-frame: var(--side)
-      const frameCenterY = vh / 2 - 16;
+    const fr = frameRef.current?.getBoundingClientRect();
+    const vr = videoRef.current?.getBoundingClientRect();
+    if (live && v && v.videoWidth > 0 && fr && vr && fr.width > 0) {
+      /* Позицию рамки не считаем формулами — берём её реальный прямоугольник
+       * из DOM (getBoundingClientRect), так что вырезка всегда строго по рамке,
+       * независимо от тулбара Safari и translateY у .cam-center.
+       * Врёт только videoWidth/Height — потому и две интерпретации. */
       const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(x, hi));
 
-      /* WebKit врёт с videoWidth/Height (может отдавать ориентацию буфера,
-       * а рисовать повёрнутый кадр). Пробуем обе интерпретации и берём ту,
-       * где вырезка не выходит за настоящий кадр (нет чёрных/прозрачных краёв). */
       const tryCrop = (swapped: boolean) => {
         let bw = v.videoWidth;
         let bh = v.videoHeight;
         if (swapped) [bw, bh] = [bh, bw];
-        const scale = Math.max(vw / bw, vh / bh);
-        const offX = (vw - bw * scale) / 2;
-        const offY = (vh - bh * scale) / 2;
-        const size = side / scale;
-        const sx = clamp((vw - side) / 2 - offX, 0, bw - size);
-        const sy = clamp(frameCenterY - side / 2 - offY, 0, bh - size);
+        // object-fit: cover относительно реального бокса видео
+        const scale = Math.max(vr.width / bw, vr.height / bh);
+        const offX = (vr.width - bw * scale) / 2;
+        const offY = (vr.height - bh * scale) / 2;
+        const size = fr.width / scale;
+        const sx = clamp((fr.left - vr.left - offX) / scale, 0, bw - size);
+        const sy = clamp((fr.top - vr.top - offY) / scale, 0, bh - size);
         const c = document.createElement("canvas");
-        c.width = 720;
-        c.height = 720;
+        c.width = 1080;
+        c.height = 1080;
         const ctx = c.getContext("2d", { willReadFrequently: true });
         if (!ctx) return null;
-        ctx.drawImage(v, sx, sy, size, size, 0, 0, 720, 720);
+        ctx.drawImage(v, sx, sy, size, size, 0, 0, 1080, 1080);
         // проверка краёв: прозрачный или почти чёрный = вырезка мимо кадра
-        const d = ctx.getImageData(0, 0, 720, 720).data;
-        const probes = [
-          [8, 8], [711, 8], [8, 711], [711, 711],
-          [360, 8], [8, 360], [711, 360], [360, 711],
+        const W = 1080;
+        const m = 12;
+        const d = ctx.getImageData(0, 0, W, W).data;
+        const probes: Array<[number, number]> = [
+          [m, m], [W - 1 - m, m], [m, W - 1 - m], [W - 1 - m, W - 1 - m],
+          [W >> 1, m], [m, W >> 1], [W - 1 - m, W >> 1], [W >> 1, W - 1 - m],
         ];
         let bad = 0;
         for (const [x, y] of probes) {
-          const i = (y * 720 + x) * 4;
+          const i = (y * W + x) * 4;
           const lum = (d[i] + d[i + 1] + d[i + 2]) / 3;
           if (d[i + 3] < 16 || lum < 6) bad++;
         }
@@ -85,11 +105,11 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
         if (alt && (result == null || alt.ok)) result = alt;
       }
       if (result) {
-        onCapture(result.canvas.toDataURL("image/jpeg", 0.85));
+        finish(result.canvas.toDataURL("image/jpeg", 0.9));
         return;
       }
     }
-    onCapture(null); // no camera → demo photo on the result page
+    finish(null); // no camera → demo photo on the result page
   };
 
   return (
@@ -100,6 +120,7 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
       <div className="cam-blur cam-blur-bottom" />
       <div className="cam-blur cam-blur-left" />
       <div className="cam-blur cam-blur-right" />
+      {flash && <div className="cam-flash" />}
       <button className="cam-close" onClick={onClose} aria-label="Закрыть камеру">
         <svg viewBox="0 0 20 20" width="18" height="18">
           <path
@@ -112,7 +133,8 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
         </svg>
       </button>
       <div className="cam-center">
-        <div className="cam-frame">
+        <div className="cam-frame" ref={frameRef}>
+          {shot && <img className="cam-freeze" src={shot} alt="" />}
           <span className="cam-c tl" />
           <span className="cam-c tr" />
           <span className="cam-c bl" />
