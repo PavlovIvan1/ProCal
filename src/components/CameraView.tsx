@@ -44,25 +44,16 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
       const side = Math.min(330, vw - 36); // .cam-frame: min(330px, 100% - 36px)
       const frameCenterY = vh / 2 - 16;
 
-      // iOS отдаёт ландшафтный буфер при портретном отображении:
-      // приводим кадр к ориентации экрана (поворот 90° по часовой)
-      let src: HTMLVideoElement | HTMLCanvasElement = v;
-      let bw = v.videoWidth;
-      let bh = v.videoHeight;
-      const mismatch = v.videoWidth > v.videoHeight !== vh >= vw;
-      if (mismatch) {
-        const norm = document.createElement("canvas");
-        norm.width = v.videoHeight;
-        norm.height = v.videoWidth;
-        const nctx = norm.getContext("2d");
-        if (nctx) {
-          nctx.translate(norm.width, 0);
-          nctx.rotate(Math.PI / 2);
-          nctx.drawImage(v, 0, 0);
-          src = norm;
-          bw = norm.width;
-          bh = norm.height;
-        }
+      // iOS Safari рисует кадр в canvas уже повёрнутым (как на экране),
+      // но videoWidth/videoHeight сообщает в ориентации буфера —
+      // поэтому при несовпадении считаем cover-математику по «эффективным» размерам
+      const bw0 = v.videoWidth;
+      const bh0 = v.videoHeight;
+      let bw = bw0;
+      let bh = bh0;
+      if (bw0 > bh0 !== vh >= vw) {
+        bw = bh0;
+        bh = bw0;
       }
 
       // пересчёт области экрана в пиксели видео (object-fit: cover)
@@ -80,7 +71,7 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
       c.height = 720;
       const ctx = c.getContext("2d");
       if (ctx) {
-        ctx.drawImage(src, sx, sy, size, size, 0, 0, 720, 720);
+        ctx.drawImage(v, sx, sy, size, size, 0, 0, 720, 720);
         onCapture(c.toDataURL("image/jpeg", 0.85));
         return;
       }
