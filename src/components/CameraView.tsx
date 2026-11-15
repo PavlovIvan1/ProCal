@@ -37,28 +37,50 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
   const capture = () => {
     const v = videoRef.current;
     if (live && v && v.videoWidth > 0) {
-      // размер и позиция рамки ровно как в CSS (.cam-frame, .cam-center)
+      // размер и позиция рамки ровно как в CSS (.cam-frame, .cam-center):
+      // контейнер (рамка + подсказка ~31px) центрирован на 50% экрана
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const side = Math.min(330, vw - 36); // .cam-frame: min(330px, 100% - 36px)
-      const frameCenterY = vh / 2 - 0.04 * side; // top:50% + translateY(-54%)
+      const frameCenterY = vh / 2 - 16;
+
+      // iOS отдаёт ландшафтный буфер при портретном отображении:
+      // приводим кадр к ориентации экрана (поворот 90° по часовой)
+      let src: HTMLVideoElement | HTMLCanvasElement = v;
+      let bw = v.videoWidth;
+      let bh = v.videoHeight;
+      const mismatch = v.videoWidth > v.videoHeight !== vh >= vw;
+      if (mismatch) {
+        const norm = document.createElement("canvas");
+        norm.width = v.videoHeight;
+        norm.height = v.videoWidth;
+        const nctx = norm.getContext("2d");
+        if (nctx) {
+          nctx.translate(norm.width, 0);
+          nctx.rotate(Math.PI / 2);
+          nctx.drawImage(v, 0, 0);
+          src = norm;
+          bw = norm.width;
+          bh = norm.height;
+        }
+      }
 
       // пересчёт области экрана в пиксели видео (object-fit: cover)
-      const scale = Math.max(vw / v.videoWidth, vh / v.videoHeight);
-      const offX = (vw - v.videoWidth * scale) / 2;
-      const offY = (vh - v.videoHeight * scale) / 2;
+      const scale = Math.max(vw / bw, vh / bh);
+      const offX = (vw - bw * scale) / 2;
+      const offY = (vh - bh * scale) / 2;
       let sx = (vw - side) / 2 - offX;
       let sy = frameCenterY - side / 2 - offY;
       const size = side / scale;
-      sx = Math.max(0, Math.min(sx, v.videoWidth - size));
-      sy = Math.max(0, Math.min(sy, v.videoHeight - size));
+      sx = Math.max(0, Math.min(sx, bw - size));
+      sy = Math.max(0, Math.min(sy, bh - size));
 
       const c = document.createElement("canvas");
       c.width = 720;
       c.height = 720;
       const ctx = c.getContext("2d");
       if (ctx) {
-        ctx.drawImage(v, sx, sy, size, size, 0, 0, 720, 720);
+        ctx.drawImage(src, sx, sy, size, size, 0, 0, 720, 720);
         onCapture(c.toDataURL("image/jpeg", 0.85));
         return;
       }
