@@ -801,16 +801,21 @@ button {
 }
 
 /* ================= result page ================= */
+/* навигация всплывает над фото и прилипает к верху */
 .fs-scope {
-  padding-top: 14px;
+  padding-top: 0;
 }
 .fs-nav {
-  position: relative;
-  height: 40px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  height: 56px;
+  margin-bottom: -56px; /* не занимает место — фото начинается с самого верха */
+  padding: 14px 20px 0;
 }
 .fs-nav-btn {
   position: absolute;
-  top: 0;
+  top: 14px;
   width: 40px;
   height: 40px;
   border: 0;
@@ -827,32 +832,35 @@ button {
   filter: brightness(0.95);
 }
 .fs-nav-back {
-  left: 0;
+  left: 20px;
 }
 .fs-nav-more {
-  right: 0;
+  right: 20px;
 }
 .fs-nav-btn img {
   width: 20px;
   height: 20px;
 }
-.fs-nav-title {
-  position: absolute;
-  left: 52px;
-  right: 52px;
-  top: 12px;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-}
 
+/* фото от края до края, прилипает к верху — лист-карточка закрывает его при скролле */
 .fs-photo {
-  position: relative;
-  margin-top: 14px;
-  border-radius: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  width: 100%;
   overflow: hidden;
   background: #fff;
+}
+
+/* лист с закруглёнными верхними углами наезжает на фото */
+.fs-sheet {
+  position: relative;
+  z-index: 1;
+  margin-top: -24px;
+  border-radius: 20px 20px 0 0;
+  background: var(--bg);
+  padding: 20px 20px 28px;
+  box-shadow: 0 -10px 30px rgba(31, 20, 24, 0.12);
 }
 .fs-food {
   display: block;
@@ -893,7 +901,7 @@ button {
 
 .fs-id {
   position: relative;
-  margin-top: 16px;
+  margin-top: 0;
 }
 .fs-id h2 {
   font-size: 17px;
@@ -1133,6 +1141,115 @@ button {
   border-bottom-left-radius: 3px;
 }
 .fs-coach-row.mad .fs-bubble-title {
+  color: var(--brand);
+}
+
+/* советы под репликой ИИ: нормальный тон, раскрытие с деталями */
+.fs-tips {
+  margin-top: 16px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 2px 16px;
+}
+.fs-tips-head {
+  padding: 14px 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.fs-tip {
+  border-bottom: 1px solid var(--track);
+}
+.fs-tip:last-of-type {
+  border-bottom: 0;
+}
+div.fs-tip {
+  padding: 14px 0;
+}
+.fs-tip summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 0;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink);
+  transition: color 0.2s ease;
+}
+.fs-tip summary::-webkit-details-marker {
+  display: none;
+}
+.fs-tip summary svg {
+  flex: none;
+  color: var(--muted);
+  transition: transform 0.22s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+.fs-tip[open] summary svg {
+  transform: rotate(180deg);
+}
+.fs-tip[open] summary {
+  color: var(--brand);
+}
+.fs-tip p {
+  padding: 0 24px 12px 0;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* оценка результата: лайк / дизлайк */
+.fs-feedback {
+  margin-top: 16px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.fs-feedback-q {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.fs-feedback-thanks {
+  margin-top: 2px;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.fs-feedback-btns {
+  display: flex;
+  gap: 8px;
+}
+.fs-feedback-btns button {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease;
+}
+.fs-feedback-btns button:active {
+  transform: scale(0.88);
+}
+.fs-feedback-btns button:disabled {
+  cursor: default;
+}
+.fs-feedback-btns button.on.up {
+  background: #e4efdf;
+  color: #3d7a2a;
+}
+.fs-feedback-btns button.on.down {
+  background: var(--pink);
   color: var(--brand);
 }
 
