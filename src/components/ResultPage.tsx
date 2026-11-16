@@ -75,11 +75,15 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
   const [mode, setMode] = useState<"angry" | "calm">("angry");
   const [openTip, setOpenTip] = useState<number | null>(0);
   const [fb, setFb] = useState<FeedbackKind | null>(null);
+  const [fbHiding, setFbHiding] = useState(false);
+  const [fbGone, setFbGone] = useState(false);
 
   useEffect(() => {
     let alive = true;
     setAnalysis(null);
     setFb(null);
+    setFbHiding(false);
+    setFbGone(false);
     setOpenTip(0);
     recognizeMeal(photo ?? "demo").then((a) => {
       if (alive) setAnalysis(a);
@@ -95,9 +99,11 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
 
   const rate = (kind: FeedbackKind) => {
     if (!analysis) return;
-    const next = fb === kind ? null : kind;
-    setFb(next);
-    if (next) sendFeedback(next, analysis.meal.name, analysis.meal.kcal, analysis.coach);
+    setFb(kind);
+    sendFeedback(kind, analysis.meal.name, analysis.meal.kcal, analysis.coach);
+    // «спасибо» на миг, затем плашка плавно уходит
+    window.setTimeout(() => setFbHiding(true), 1000);
+    window.setTimeout(() => setFbGone(true), 1500);
   };
 
   return (
@@ -124,24 +130,28 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
               </button>
             </div>
 
-            {/* калории + БЖУ в одну минималистичную строку */}
+            {/* калории + БЖУ одной минималистичной строкой */}
             <div className="fs-line">
               <span className="fs-line-kcal">
                 {meal.kcal}
                 <em>ккал</em>
               </span>
-              <span className="fs-line-sep" />
-              <span className="fs-line-m">
-                <i style={{ background: "#8a0027" }} />Б {meal.protein}
+              <span className="fs-line-chips">
+                <span className="fs-chip">
+                  <i style={{ background: "#8a0027" }} />
+                  Белки {meal.protein} г
+                </span>
+                <span className="fs-chip">
+                  <i style={{ background: "#b76b80" }} />
+                  Углеводы {meal.carbs} г
+                </span>
+                <span className="fs-chip">
+                  <i style={{ background: "#d8aebb" }} />
+                  Жиры {meal.fat} г
+                </span>
               </span>
-              <span className="fs-line-m">
-                <i style={{ background: "#b76b80" }} />У {meal.carbs}
-              </span>
-              <span className="fs-line-m">
-                <i style={{ background: "#d8aebb" }} />Ж {meal.fat}
-              </span>
-              <span className="fs-line-est">≈ по фото</span>
             </div>
+            <p className="fs-line-note">≈ оценка по фото, можно поправить вручную</p>
 
             <section className="fs-coach">
               <div className="fs-coach-head">
@@ -189,24 +199,31 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
               </div>
             )}
 
-            <div className="fs-feedback">
-              <div className="fs-feedback-main">
-                <p className="fs-feedback-q">Понравилась оценка блюда?</p>
-                {fb && (
-                  <p className="fs-feedback-thanks fs-swap" key="fb">
-                    {fb === "up" ? "Спасибо, учтём!" : "Понял, поработаю над точностью."}
-                  </p>
-                )}
+            {!fbGone && (
+              <div className={"fs-feedback" + (fbHiding ? " hiding" : "")}>
+                <div className="fs-feedback-main">
+                  <p className="fs-feedback-q">Понравилась оценка блюда?</p>
+                  {fb && (
+                    <p className="fs-feedback-thanks fs-swap" key="fb">
+                      {fb === "up" ? "Спасибо, учтём!" : "Понял, поработаю над точностью."}
+                    </p>
+                  )}
+                </div>
+                <div className="fs-feedback-btns">
+                  <button className={fb === "up" ? "on up" : ""} onClick={() => rate("up")} aria-label="Понравилось">
+                    <ThumbIcon on={fb === "up"} />
+                  </button>
+                  <button className={fb === "down" ? "on down" : ""} onClick={() => rate("down")} aria-label="Не понравилось">
+                    <ThumbIcon down on={fb === "down"} />
+                  </button>
+                </div>
               </div>
-              <div className="fs-feedback-btns">
-                <button className={fb === "up" ? "on up" : ""} onClick={() => rate("up")} aria-label="Понравилось">
-                  <ThumbIcon on={fb === "up"} />
-                </button>
-                <button className={fb === "down" ? "on down" : ""} onClick={() => rate("down")} aria-label="Не понравилось">
-                  <ThumbIcon down on={fb === "down"} />
-                </button>
-              </div>
-            </div>
+            )}
+            {fbGone && (
+              <p className="fs-feedback-done fs-swap">
+                {fb === "up" ? "Спасибо, учтём!" : "Учёл. Точность оценок улучшим."}
+              </p>
+            )}
 
             <button className="fs-cta" onClick={() => { addMeal(meal); onBack(); }}>
               Добавить в обед
@@ -223,10 +240,11 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
             </div>
             <div className="fs-line">
               <span className="fs-line-kcal sk sk-line" style={{ width: 90, height: 22 }} />
-              <span className="fs-line-sep" />
-              {[0, 1, 2].map((i) => (
-                <span className="fs-line-m sk sk-line" key={i} style={{ width: 44, height: 12 }} />
-              ))}
+              <span className="fs-line-chips">
+                {[0, 1, 2].map((i) => (
+                  <span className="fs-chip sk sk-line" key={i} style={{ width: 92, height: 14 }} />
+                ))}
+              </span>
             </div>
             <div className="fs-tips">
               {[0, 1].map((i) => (
