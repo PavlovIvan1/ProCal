@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import backIcon from "../assets/back.svg";
 import editIcon from "../assets/edit.svg";
 import addIcon from "../assets/add.svg";
@@ -70,6 +70,31 @@ function Mascot({ mad }: { mad: boolean }) {
   );
 }
 
+/* Совет-«FAQ»: раскрытие через замер реальной высоты — Safari анимирует
+ * фиксированную height в px заметно плавнее, чем grid-template-rows */
+function TipItem({ title, detail, open, onToggle }: { title: string; detail: string; open: boolean; onToggle(): void }) {
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [h, setH] = useState(0);
+
+  useLayoutEffect(() => {
+    if (open && innerRef.current) setH(innerRef.current.scrollHeight);
+  }, [open, detail]);
+
+  return (
+    <div className={"fs-tip" + (open ? " open" : "")}>
+      <button className="fs-tip-head" onClick={onToggle}>
+        <span>{title}</span>
+        <Chevron />
+      </button>
+      <div className="fs-tip-body" style={{ height: open ? h : 0 }}>
+        <div className="fs-tip-inner" ref={innerRef}>
+          <p>{detail}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): void }) {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [mode, setMode] = useState<"angry" | "calm">("angry");
@@ -77,6 +102,8 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
   const [fb, setFb] = useState<FeedbackKind | null>(null);
   const [fbHiding, setFbHiding] = useState(false);
   const [fbGone, setFbGone] = useState(false);
+  const fbRef = useRef<HTMLDivElement>(null);
+  const [fbH, setFbH] = useState<number | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -84,6 +111,7 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
     setFb(null);
     setFbHiding(false);
     setFbGone(false);
+    setFbH(null);
     setOpenTip(0);
     recognizeMeal(photo ?? "demo").then((a) => {
       if (alive) setAnalysis(a);
@@ -93,6 +121,11 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
     };
   }, [photo]);
 
+  /* высоту карточки замеряем пока она не начала уезжать */
+  useLayoutEffect(() => {
+    if (analysis && !fbHiding && fbRef.current) setFbH(fbRef.current.scrollHeight);
+  }, [analysis, fb, fbHiding]);
+
   const meal: MealEstimate | null = analysis?.meal ?? null;
   const bars = meal ? macroBars(meal) : [];
   const quote = analysis ? (mode === "angry" ? analysis.coach : analysis.coachCalm) : "";
@@ -101,9 +134,9 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
     if (!analysis) return;
     setFb(kind);
     sendFeedback(kind, analysis.meal.name, analysis.meal.kcal, analysis.coach);
-    // «спасибо» на миг, затем плашка плавно уходит
-    window.setTimeout(() => setFbHiding(true), 1000);
-    window.setTimeout(() => setFbGone(true), 1500);
+    // «спасибо» на миг, затем карточка плавно складывается по своей реальной высоте
+    window.setTimeout(() => setFbHiding(true), 1100);
+    window.setTimeout(() => setFbGone(true), 1600);
   };
 
   return (
@@ -186,21 +219,29 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
             {analysis.tips.length > 0 && (
               <div className="fs-tips">
                 {analysis.tips.map((t, i) => (
-                  <div className={"fs-tip" + (openTip === i ? " open" : "")} key={t.title + i}>
-                    <button className="fs-tip-head" onClick={() => setOpenTip(openTip === i ? null : i)}>
-                      <span>{t.title}</span>
-                      <Chevron />
-                    </button>
-                    <div className="fs-tip-body">
-                      <p>{t.detail}</p>
-                    </div>
-                  </div>
+                  <TipItem
+                    key={t.title + i}
+                    title={t.title}
+                    detail={t.detail}
+                    open={openTip === i}
+                    onToggle={() => setOpenTip(openTip === i ? null : i)}
+                  />
                 ))}
               </div>
             )}
 
             {!fbGone && (
-              <div className={"fs-feedback" + (fbHiding ? " hiding" : "")}>
+              <div
+                ref={fbRef}
+                className={"fs-feedback" + (fbHiding ? " hiding" : "")}
+                style={
+                  fbHiding
+                    ? { height: 0, opacity: 0 }
+                    : fbH != null
+                      ? { height: fbH }
+                      : undefined
+                }
+              >
                 <div className="fs-feedback-main">
                   <p className="fs-feedback-q">Понравилась оценка блюда?</p>
                   {fb && (
