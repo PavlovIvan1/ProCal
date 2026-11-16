@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import backIcon from "../assets/back.svg";
-import moreIcon from "../assets/more.svg";
-import scanSuccess from "../assets/scan-success.svg";
 import editIcon from "../assets/edit.svg";
 import addIcon from "../assets/add.svg";
 import burger from "../assets/burger.png";
@@ -9,14 +7,27 @@ import coachArms from "../assets/coach-arms.svg";
 import coachFeet from "../assets/coach-feet.svg";
 import coachBody from "../assets/coach-body.svg";
 import coachFace from "../assets/coach-face.svg";
+import coachFaceCalm from "../assets/coach-face-calm.svg";
+import flameIcon from "../assets/flame.svg";
+import dropletIcon from "../assets/droplet.svg";
 import { recognizeMeal, type Analysis } from "../services/vision";
 import { macroBars, type MealEstimate } from "../data/mock";
 import { addMeal } from "../store";
 import { sendFeedback, type FeedbackKind } from "../services/feedback";
 
-function ThumbIcon({ down }: { down?: boolean }) {
+function ThumbIcon({ down, on }: { down?: boolean; on?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={down ? { transform: "rotate(180deg)" } : undefined}>
+    <svg
+      viewBox="0 0 24 24"
+      width="21"
+      height="21"
+      fill={on ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={down ? { transform: "rotate(180deg)" } : undefined}
+    >
       <path d="M7 10v10H4a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1h3zm0 0 4-8a2.4 2.4 0 0 1 2.4 2.4V9h5.2a1.8 1.8 0 0 1 1.77 2.1l-1.2 7A1.8 1.8 0 0 1 17.4 20H7" />
     </svg>
   );
@@ -24,7 +35,7 @@ function ThumbIcon({ down }: { down?: boolean }) {
 
 function Chevron() {
   return (
-    <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 6l4 4 4-4" />
     </svg>
   );
@@ -32,7 +43,7 @@ function Chevron() {
 
 /** Grumpy coach mascot, rendered from the 100×100 Figma frame scaled to 78px
  *  so no layer gets cropped (the source design clipped the arms). */
-function Mascot() {
+function Mascot({ mad }: { mad: boolean }) {
   return (
     <div className="fs-mascot" aria-hidden="true">
       <div className="fs-mascot-scale">
@@ -51,7 +62,7 @@ function Mascot() {
         </div>
         <div className="fs-part face">
           <span style={{ inset: "-6.48% -5.15%" }}>
-            <img src={coachFace.src} alt="" />
+            <img src={mad ? coachFace.src : coachFaceCalm.src} alt="" />
           </span>
         </div>
       </div>
@@ -61,12 +72,15 @@ function Mascot() {
 
 export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): void }) {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [mode, setMode] = useState<"angry" | "calm">("angry");
+  const [openTip, setOpenTip] = useState<number | null>(0);
   const [fb, setFb] = useState<FeedbackKind | null>(null);
 
   useEffect(() => {
     let alive = true;
     setAnalysis(null);
     setFb(null);
+    setOpenTip(0);
     recognizeMeal(photo ?? "demo").then((a) => {
       if (alive) setAnalysis(a);
     });
@@ -77,11 +91,13 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
 
   const meal: MealEstimate | null = analysis?.meal ?? null;
   const bars = meal ? macroBars(meal) : [];
+  const quote = analysis ? (mode === "angry" ? analysis.coach : analysis.coachCalm) : "";
 
   const rate = (kind: FeedbackKind) => {
-    if (fb || !analysis) return;
-    setFb(kind);
-    sendFeedback(kind, analysis.meal.name, analysis.meal.kcal, analysis.coach);
+    if (!analysis) return;
+    const next = fb === kind ? null : kind;
+    setFb(next);
+    if (next) sendFeedback(next, analysis.meal.name, analysis.meal.kcal, analysis.coach);
   };
 
   return (
@@ -90,21 +106,11 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
         <button className="fs-nav-btn fs-nav-back" onClick={onBack} aria-label="Назад">
           <img src={backIcon.src} alt="" />
         </button>
-        <button className="fs-nav-btn fs-nav-more" aria-label="Ещё">
-          <img src={moreIcon.src} alt="" />
-        </button>
       </div>
 
       {/* фото от края до края; карточка ниже наезжает на него при скролле */}
       <div className="fs-photo">
         <img className="fs-food" src={photo ?? burger.src} alt="Сфотографированная еда" />
-        <div className="fs-badge">
-          <img src={scanSuccess.src} alt="" />
-          <span>{analysis ? "Скан готов" : "Анализирую фото…"}</span>
-        </div>
-        <div className="fs-caption">
-          <span>1 порция</span>
-        </div>
       </div>
 
       <div className="fs-sheet">
@@ -118,55 +124,67 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
               </button>
             </div>
 
-            <div className="fs-nutri">
-              <div className="fs-nutri-head">
-                <div className="fs-kcal">
-                  <p className="fs-kcal-num">{meal.kcal}</p>
-                  <p className="fs-kcal-unit">ккал</p>
-                </div>
-                <span className="fs-est">≈ оценка по фото</span>
-              </div>
-              <div className="fs-rows">
-                {bars.map((b) => (
-                  <div className="fs-mrow" key={b.label}>
-                    <span className="fs-mrow-label">{b.label}</span>
-                    <div className="fs-mrow-track">
-                      <span
-                        style={{
-                          width: `${b.frac * 100}%`,
-                          background: b.color,
-                          transition: "width 0.6s cubic-bezier(0.22, 0.8, 0.36, 1)",
-                        }}
-                      />
-                    </div>
-                    <span className="fs-mrow-val">{b.value}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="fs-note">Оценка по фото может отличаться. Детали можно изменить.</p>
+            {/* калории + БЖУ в одну минималистичную строку */}
+            <div className="fs-line">
+              <span className="fs-line-kcal">
+                {meal.kcal}
+                <em>ккал</em>
+              </span>
+              <span className="fs-line-sep" />
+              <span className="fs-line-m">
+                <i style={{ background: "#8a0027" }} />Б {meal.protein}
+              </span>
+              <span className="fs-line-m">
+                <i style={{ background: "#b76b80" }} />У {meal.carbs}
+              </span>
+              <span className="fs-line-m">
+                <i style={{ background: "#d8aebb" }} />Ж {meal.fat}
+              </span>
+              <span className="fs-line-est">≈ по фото</span>
             </div>
 
             <section className="fs-coach">
-              <h2 className="fs-coach-mode">Режим коуча</h2>
-              <div className="fs-coach-row mad">
-                <Mascot />
+              <div className="fs-coach-head">
+                <h2 className="fs-coach-mode">Режим коуча</h2>
+                <div className="fs-mood">
+                  <button
+                    className={mode === "angry" ? "on" : ""}
+                    onClick={() => setMode("angry")}
+                    aria-label="Злой коуч"
+                  >
+                    <img src={flameIcon.src} alt="" />
+                  </button>
+                  <button
+                    className={mode === "calm" ? "on" : ""}
+                    onClick={() => setMode("calm")}
+                    aria-label="Спокойный коуч"
+                  >
+                    <img src={dropletIcon.src} alt="" />
+                  </button>
+                </div>
+              </div>
+              <div className={"fs-coach-row" + (mode === "angry" ? " mad" : "")}>
+                <Mascot mad={mode === "angry"} />
                 <div className="fs-bubble">
-                  <p className="fs-bubble-title">{analysis.coach}</p>
+                  <p className="fs-bubble-title fs-swap" key={mode + (meal.name ?? "")}>
+                    {quote}
+                  </p>
                 </div>
               </div>
             </section>
 
             {analysis.tips.length > 0 && (
               <div className="fs-tips">
-                <p className="fs-tips-head">Что улучшить</p>
-                {analysis.tips.map((t) => (
-                  <details className="fs-tip" key={t.title}>
-                    <summary>
-                      {t.title}
+                {analysis.tips.map((t, i) => (
+                  <div className={"fs-tip" + (openTip === i ? " open" : "")} key={t.title + i}>
+                    <button className="fs-tip-head" onClick={() => setOpenTip(openTip === i ? null : i)}>
+                      <span>{t.title}</span>
                       <Chevron />
-                    </summary>
-                    <p>{t.detail}</p>
-                  </details>
+                    </button>
+                    <div className="fs-tip-body">
+                      <p>{t.detail}</p>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -174,14 +192,18 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
             <div className="fs-feedback">
               <div className="fs-feedback-main">
                 <p className="fs-feedback-q">Понравилась оценка блюда?</p>
-                {fb && <p className="fs-feedback-thanks">Спасибо, учтём!</p>}
+                {fb && (
+                  <p className="fs-feedback-thanks fs-swap" key="fb">
+                    {fb === "up" ? "Спасибо, учтём!" : "Понял, поработаю над точностью."}
+                  </p>
+                )}
               </div>
               <div className="fs-feedback-btns">
-                <button className={fb === "up" ? "on up" : ""} onClick={() => rate("up")} aria-label="Понравилось" disabled={!!fb}>
-                  <ThumbIcon />
+                <button className={fb === "up" ? "on up" : ""} onClick={() => rate("up")} aria-label="Понравилось">
+                  <ThumbIcon on={fb === "up"} />
                 </button>
-                <button className={fb === "down" ? "on down" : ""} onClick={() => rate("down")} aria-label="Не понравилось" disabled={!!fb}>
-                  <ThumbIcon down />
+                <button className={fb === "down" ? "on down" : ""} onClick={() => rate("down")} aria-label="Не понравилось">
+                  <ThumbIcon down on={fb === "down"} />
                 </button>
               </div>
             </div>
@@ -199,28 +221,19 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
                 <span className="sk sk-line" style={{ width: "70%" }} />
               </p>
             </div>
-            <div className="fs-nutri">
-              <div className="fs-nutri-head">
-                <div className="fs-kcal">
-                  <p className="fs-kcal-num sk sk-line" style={{ width: 64 }} />
-                  <p className="fs-kcal-unit">ккал</p>
-                </div>
-                <span className="fs-est">≈ оценка по фото</span>
-              </div>
-              <div className="fs-rows">
-                {[0, 1, 2].map((i) => (
-                  <div className="fs-mrow" key={i}>
-                    <span className="sk sk-line" style={{ width: 52 }} />
-                    <div className="fs-mrow-track" />
-                    <span className="sk sk-line" style={{ width: 40 }} />
-                  </div>
-                ))}
-              </div>
+            <div className="fs-line">
+              <span className="fs-line-kcal sk sk-line" style={{ width: 90, height: 22 }} />
+              <span className="fs-line-sep" />
+              {[0, 1, 2].map((i) => (
+                <span className="fs-line-m sk sk-line" key={i} style={{ width: 44, height: 12 }} />
+              ))}
             </div>
             <div className="fs-tips">
-              {[0, 1, 2].map((i) => (
+              {[0, 1].map((i) => (
                 <div className="fs-tip" key={i}>
-                  <span className="sk sk-line" style={{ width: "55%" }} />
+                  <span className="fs-tip-head">
+                    <span className="sk sk-line" style={{ width: "55%" }} />
+                  </span>
                 </div>
               ))}
             </div>

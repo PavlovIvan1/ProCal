@@ -834,9 +834,6 @@ button {
 .fs-nav-back {
   left: 20px;
 }
-.fs-nav-more {
-  right: 20px;
-}
 .fs-nav-btn img {
   width: 20px;
   height: 20px;
@@ -869,36 +866,6 @@ button {
   height: auto;
   object-fit: cover;
 }
-.fs-badge {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 12px;
-  border-radius: 15px;
-  background: rgba(255, 255, 255, 0.94);
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--brand);
-}
-.fs-badge img {
-  width: 15px;
-  height: 15px;
-}
-.fs-caption {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  padding: 6px 12px;
-  border-radius: 13px;
-  background: rgba(41, 38, 38, 0.6);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 500;
-}
-
 .fs-id {
   position: relative;
   margin-top: 0;
@@ -939,85 +906,54 @@ button {
   height: 21px;
 }
 
-.fs-nutri {
-  margin-top: 14px;
-  background: #fff;
-  border-radius: 20px;
-  padding: 18px 16px 16px;
-}
-.fs-nutri-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-.fs-kcal {
+/* калории + БЖУ одной минималистичной строкой */
+.fs-line {
+  margin-top: 12px;
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 14px;
 }
-.fs-kcal-num {
-  font-size: 30px;
+.fs-line-kcal {
+  font-size: 26px;
   font-weight: 600;
   line-height: 1;
   color: var(--ink);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
-.fs-kcal-unit {
-  font-size: 11px;
+.fs-line-kcal em {
+  margin-left: 5px;
+  font-style: normal;
+  font-size: 12px;
   font-weight: 500;
   color: var(--muted);
 }
-.fs-est {
-  margin-bottom: 3px;
-  padding: 5px 10px;
-  border-radius: 12px;
-  background: var(--bg);
-  font-size: 9.5px;
-  font-weight: 500;
-  color: var(--muted);
-}
-.fs-rows {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-}
-.fs-mrow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.fs-mrow-label {
-  flex: none;
-  width: 52px;
-  font-size: 10px;
-  color: var(--muted);
-}
-.fs-mrow-track {
-  position: relative;
-  flex: 1;
-  height: 5px;
-  border-radius: 2.5px;
+.fs-line-sep {
+  align-self: center;
+  width: 1px;
+  height: 18px;
   background: var(--track);
 }
-.fs-mrow-track span {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  border-radius: 2.5px;
+.fs-line-m {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
 }
-.fs-mrow-val {
-  flex: none;
-  width: 40px;
-  text-align: right;
+.fs-line-m i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.fs-line-est {
+  margin-left: auto;
   font-size: 10px;
   font-weight: 500;
-  color: var(--ink);
-}
-.fs-note {
-  margin-top: 14px;
-  font-size: 9.5px;
   color: var(--muted);
+  white-space: nowrap;
 }
 
 .fs-coach {
@@ -1144,90 +1080,122 @@ button {
   color: var(--brand);
 }
 
-/* советы под репликой ИИ: нормальный тон, раскрытие с деталями */
+/* советы — каждый отдельной FAQ-карточкой, плавное раскрытие */
 .fs-tips {
   margin-top: 16px;
-  background: #fff;
-  border-radius: 20px;
-  padding: 2px 16px;
-}
-.fs-tips-head {
-  padding: 14px 0 4px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .fs-tip {
-  border-bottom: 1px solid var(--track);
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  transition: border-radius 0.3s cubic-bezier(0.22, 0.8, 0.36, 1);
 }
-.fs-tip:last-of-type {
-  border-bottom: 0;
-}
-div.fs-tip {
-  padding: 14px 0;
-}
-.fs-tip summary {
-  list-style: none;
+.fs-tip-head {
+  width: 100%;
+  border: 0;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 12px 0;
+  padding: 14px 16px;
   cursor: pointer;
-  font-size: 12.5px;
-  font-weight: 500;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--ink);
-  transition: color 0.2s ease;
+  text-align: left;
+  transition: color 0.25s ease, padding 0.3s cubic-bezier(0.22, 0.8, 0.36, 1);
 }
-.fs-tip summary::-webkit-details-marker {
-  display: none;
-}
-.fs-tip summary svg {
+.fs-tip-head svg {
   flex: none;
   color: var(--muted);
-  transition: transform 0.22s cubic-bezier(0.22, 0.8, 0.36, 1);
+  transition: transform 0.32s cubic-bezier(0.22, 0.8, 0.36, 1), color 0.25s ease;
 }
-.fs-tip[open] summary svg {
+.fs-tip-head:active {
+  transform: scale(0.985);
+}
+.fs-tip.open .fs-tip-head {
+  color: var(--brand);
+  padding-bottom: 6px;
+}
+.fs-tip.open .fs-tip-head svg {
   transform: rotate(180deg);
-}
-.fs-tip[open] summary {
   color: var(--brand);
 }
-.fs-tip p {
-  padding: 0 24px 12px 0;
-  font-size: 11px;
-  line-height: 1.55;
+.fs-tip-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.34s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+.fs-tip.open .fs-tip-body {
+  grid-template-rows: 1fr;
+}
+.fs-tip-body p {
+  overflow: hidden;
+  min-height: 0;
+  margin: 0;
+  padding: 0 16px;
+  font-size: 11.5px;
+  line-height: 1.6;
   color: var(--muted);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.28s ease 0.06s, transform 0.28s cubic-bezier(0.22, 0.8, 0.36, 1) 0.06s,
+    padding 0.34s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+.fs-tip.open .fs-tip-body p {
+  opacity: 1;
+  transform: none;
+  padding-bottom: 14px;
 }
 
-/* оценка результата: лайк / дизлайк */
+/* смена реплики / текста — мягкая переклейка */
+.fs-swap {
+  animation: fsSwap 0.32s cubic-bezier(0.22, 0.8, 0.36, 1) both;
+}
+@keyframes fsSwap {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* оценка результата: лайк / дизлайк — крупные жирные иконки */
 .fs-feedback {
   margin-top: 16px;
   background: #fff;
   border-radius: 20px;
-  padding: 14px 16px;
+  padding: 15px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 .fs-feedback-q {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--ink);
 }
 .fs-feedback-thanks {
-  margin-top: 2px;
-  font-size: 10.5px;
+  margin-top: 3px;
+  font-size: 11px;
   color: var(--muted);
 }
 .fs-feedback-btns {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 .fs-feedback-btns button {
-  width: 38px;
-  height: 38px;
+  width: 46px;
+  height: 46px;
   border: 0;
   border-radius: 50%;
   background: var(--bg);
@@ -1236,13 +1204,18 @@ div.fs-tip {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease;
+  transition: transform 0.18s cubic-bezier(0.34, 1.4, 0.5, 1), background 0.25s ease,
+    color 0.25s ease, box-shadow 0.25s ease;
+}
+.fs-feedback-btns button:hover {
+  transform: translateY(-1px);
 }
 .fs-feedback-btns button:active {
-  transform: scale(0.88);
+  transform: scale(0.86);
 }
-.fs-feedback-btns button:disabled {
-  cursor: default;
+.fs-feedback-btns button.on {
+  box-shadow: 0 6px 18px rgba(138, 0, 39, 0.18);
+  animation: fbPop 0.4s cubic-bezier(0.34, 1.5, 0.5, 1) both;
 }
 .fs-feedback-btns button.on.up {
   background: #e4efdf;
@@ -1251,6 +1224,17 @@ div.fs-tip {
 .fs-feedback-btns button.on.down {
   background: var(--pink);
   color: var(--brand);
+}
+@keyframes fbPop {
+  0% {
+    transform: scale(0.8);
+  }
+  55% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .fs-cta {
