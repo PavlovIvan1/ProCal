@@ -199,9 +199,7 @@ function HomePage({ onScan }: { onScan(): void }) {
         tabIndex={0}
         aria-label="Сканировать еду — коуч ждёт"
       >
-        <div className="coachb-ava">
-          <Mascot mad={false} />
-        </div>
+        <Mascot mad={false} />
         <h2 className="coachb-title">Коуч ждёт</h2>
         <p className="coachb-sub">Сфотографируй еду — я всё посчитаю</p>
         <span className="coachb-go">
