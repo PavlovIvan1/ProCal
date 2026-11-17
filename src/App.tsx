@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import flame from "./assets/flame.svg";
 import droplet from "./assets/droplet.svg";
 import scanFrame from "./assets/scan-frame.svg";
-import { useStore, addMeal, bumpCelebrate, takeCelebrate } from "./store";
+import { useStore, takeCelebrate } from "./store";
 import { Gauge } from "./components/Gauge";
 import { CameraView } from "./components/CameraView";
 import { ResultPage } from "./components/ResultPage";
@@ -281,7 +281,7 @@ export default function App() {
   /* еда добавлена → главная при монтировании отыграет анимацию заливки */
   const prevMeals = useRef(meals.length);
   useEffect(() => {
-    if (meals.length > prevMeals.current) bumpCelebrate();
+    if (meals.length > prevMeals.current) setCelebrate((c) => c + 1);
     prevMeals.current = meals.length;
   }, [meals.length]);
 
