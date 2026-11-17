@@ -191,10 +191,6 @@ function HomePage({ onScan }: { onScan(): void }) {
   return (
     <main className="content">
       <Greeting streak={Math.max(1, streak)} />
-      <button className="scan" onClick={onScan}>
-        <FigIcon src={scanFrame.src} w={21} group="12.5%" img="-5.96%" />
-        Сканировать еду
-      </button>
       <YearCard months={months} />
       <div className="ovh">
         <h2>Обзор за сегодня</h2>
@@ -208,6 +204,10 @@ function HomePage({ onScan }: { onScan(): void }) {
         <MacrosCard />
         <WeekCard />
       </div>
+      <button className="scan" onClick={onScan}>
+        <FigIcon src={scanFrame.src} w={21} group="12.5%" img="-5.96%" />
+        Сканировать еду
+      </button>
     </main>
   );
 }
