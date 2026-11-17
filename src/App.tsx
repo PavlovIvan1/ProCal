@@ -192,14 +192,21 @@ function HomePage({ onScan }: { onScan(): void }) {
   return (
     <main className="content">
       <Greeting streak={Math.max(1, streak)} />
-      <section className="coachb">
-        <Mascot mad={false} />
+      <section
+        className="coachb"
+        onClick={onScan}
+        role="button"
+        tabIndex={0}
+        aria-label="Сканировать еду — коуч ждёт"
+      >
+        <div className="coachb-ava">
+          <Mascot mad={false} />
+        </div>
         <h2 className="coachb-title">Коуч ждёт</h2>
         <p className="coachb-sub">Сфотографируй еду — я всё посчитаю</p>
-        <button className="coachb-btn" onClick={onScan}>
+        <span className="coachb-go">
           <FigIcon src={scanFrame.src} w={19} group="12.5%" img="-5.96%" />
-          Сканировать еду
-        </button>
+        </span>
       </section>
       <YearCard months={months} />
       <div className="ovh">

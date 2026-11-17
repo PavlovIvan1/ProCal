@@ -516,26 +516,40 @@ button {
 /* ---- coach banner (scan entry point) ---- */
 .coachb {
   position: relative;
-  height: 132px;
+  height: 120px;
   margin-top: 18px;
   background: var(--brand);
   border-radius: 22px;
   color: #fff;
   overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.16s ease;
 }
-.coachb .fs-mascot {
+.coachb:active {
+  transform: scale(0.98);
+}
+/* белая «сцена», чтобы тёмный коуч читался на бордовом */
+.coachb-ava {
   position: absolute;
-  left: 8px;
-  bottom: -2px;
-  transition: transform 0.3s cubic-bezier(0.34, 1.3, 0.5, 1);
+  left: 12px;
+  top: 12px;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #fff;
+  overflow: hidden;
 }
-.coachb:active .fs-mascot {
-  transform: translateY(2px);
+.coachb-ava .fs-mascot {
+  position: absolute;
+  left: 5px;
+  bottom: -4px;
 }
 .coachb-title {
   position: absolute;
-  left: 116px;
-  top: 24px;
+  left: 124px;
+  top: 32px;
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.3px;
@@ -543,34 +557,25 @@ button {
 }
 .coachb-sub {
   position: absolute;
-  left: 116px;
-  top: 53px;
+  left: 124px;
+  top: 60px;
+  right: 76px;
   font-size: 12px;
+  line-height: 1.35;
   color: var(--cal-sub);
 }
-.coachb-btn {
+.coachb-go {
   position: absolute;
-  left: 116px;
   right: 14px;
-  bottom: 14px;
-  height: 46px;
-  border: 0;
-  border-radius: 23px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   background: #fff;
-  color: var(--brand);
-  font-family: inherit;
-  font-size: 14.5px;
-  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: transform 0.16s ease, filter 0.2s ease;
-}
-.coachb-btn:active {
-  transform: scale(0.97);
-  filter: brightness(0.94);
 }
 
 /* ---- скелетон распознавания ---- */
