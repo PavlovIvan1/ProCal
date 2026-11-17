@@ -6,6 +6,7 @@ import droplet from "./assets/droplet.svg";
 import scanFrame from "./assets/scan-frame.svg";
 import { useStore, addMeal } from "./store";
 import { Gauge } from "./components/Gauge";
+import { Mascot } from "./components/CoachMascot";
 import { CameraView } from "./components/CameraView";
 import { ResultPage } from "./components/ResultPage";
 
@@ -191,6 +192,15 @@ function HomePage({ onScan }: { onScan(): void }) {
   return (
     <main className="content">
       <Greeting streak={Math.max(1, streak)} />
+      <section className="coachb">
+        <Mascot mad={false} />
+        <h2 className="coachb-title">Коуч ждёт</h2>
+        <p className="coachb-sub">Сфотографируй еду — я всё посчитаю</p>
+        <button className="coachb-btn" onClick={onScan}>
+          <FigIcon src={scanFrame.src} w={19} group="12.5%" img="-5.96%" />
+          Сканировать еду
+        </button>
+      </section>
       <YearCard months={months} />
       <div className="ovh">
         <h2>Обзор за сегодня</h2>
@@ -204,10 +214,6 @@ function HomePage({ onScan }: { onScan(): void }) {
         <MacrosCard />
         <WeekCard />
       </div>
-      <button className="scan" onClick={onScan}>
-        <FigIcon src={scanFrame.src} w={21} group="12.5%" img="-5.96%" />
-        Сканировать еду
-      </button>
     </main>
   );
 }

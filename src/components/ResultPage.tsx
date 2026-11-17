@@ -2,13 +2,9 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import backIcon from "../assets/back.svg";
 import addIcon from "../assets/add.svg";
 import burger from "../assets/burger.png";
-import coachArms from "../assets/coach-arms.svg";
-import coachFeet from "../assets/coach-feet.svg";
-import coachBody from "../assets/coach-body.svg";
-import coachFace from "../assets/coach-face.svg";
-import coachFaceCalm from "../assets/coach-face-calm.svg";
 import flameIcon from "../assets/flame.svg";
 import dropletIcon from "../assets/droplet.svg";
+import { Mascot } from "./CoachMascot";
 import { recognizeMeal, type Analysis } from "../services/vision";
 import { macroBars, type MealEstimate } from "../data/mock";
 import { addMeal } from "../store";
@@ -37,35 +33,6 @@ function Chevron() {
     <svg viewBox="0 0 16 16" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 6l4 4 4-4" />
     </svg>
-  );
-}
-
-/** Grumpy coach mascot, rendered from the 100×100 Figma frame scaled to 78px
- *  so no layer gets cropped (the source design clipped the arms). */
-function Mascot({ mad }: { mad: boolean }) {
-  return (
-    <div className="fs-mascot" aria-hidden="true">
-      <div className="fs-mascot-scale">
-        <div className="fs-part body">
-          <img src={coachBody.src} alt="" />
-        </div>
-        <div className="fs-part arms">
-          <span style={{ inset: "-11.91% -3.51%" }}>
-            <img src={coachArms.src} alt="" />
-          </span>
-        </div>
-        <div className="fs-part feet">
-          <span style={{ inset: "-35% -9.21%" }}>
-            <img src={coachFeet.src} alt="" />
-          </span>
-        </div>
-        <div className="fs-part face">
-          <span style={{ inset: "-6.48% -5.15%" }}>
-            <img src={mad ? coachFace.src : coachFaceCalm.src} alt="" />
-          </span>
-        </div>
-      </div>
-    </div>
   );
 }
 
