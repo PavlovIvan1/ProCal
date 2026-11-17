@@ -817,8 +817,8 @@ button {
 .fs-nav-btn {
   position: absolute;
   top: 14px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 0;
   border-radius: 50%;
   background: #fff;
@@ -836,8 +836,8 @@ button {
   left: 20px;
 }
 .fs-nav-btn img {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 
 /* фото от края до края, прилипает к верху — лист-карточка закрывает его при скролле */
@@ -882,7 +882,7 @@ button {
   gap: 12px;
 }
 .fs-id h2 {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 600;
   color: var(--ink);
   letter-spacing: -0.01em;
@@ -890,7 +890,7 @@ button {
 }
 .fs-id-kcal {
   flex: none;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--ink);
   letter-spacing: -0.01em;
@@ -898,13 +898,13 @@ button {
 .fs-id-kcal em {
   margin-left: 4px;
   font-style: normal;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--muted);
 }
 .fs-id-sub {
   margin-top: 5px;
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--muted);
 }
 
@@ -913,7 +913,7 @@ button {
   margin-top: 16px;
   background: #fff;
   border-radius: 20px;
-  padding: 15px 6px;
+  padding: 18px 8px;
   display: flex;
   align-items: stretch;
 }
@@ -921,7 +921,7 @@ button {
   flex: none;
   align-self: center;
   width: 1px;
-  height: 28px;
+  height: 32px;
   background: var(--track);
 }
 .fs-mcell {
@@ -930,29 +930,29 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
 }
 .fs-mcell-label {
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--muted);
 }
 .fs-mcell-val {
-  font-size: 14.5px;
+  font-size: 16.5px;
   font-weight: 600;
   color: var(--ink);
 }
 .fs-mcell-val em {
   margin-left: 1px;
   font-style: normal;
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--muted);
 }
 
 .fs-coach {
-  margin-top: 18px;
+  margin-top: 20px;
 }
 .fs-coach-head {
   display: flex;
@@ -960,7 +960,7 @@ button {
   justify-content: space-between;
 }
 .fs-coach-mode {
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--ink);
 }
@@ -969,8 +969,8 @@ button {
   gap: 8px;
 }
 .fs-mood button {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -988,8 +988,8 @@ button {
   background: var(--pink);
 }
 .fs-mood button img {
-  width: 17px;
-  height: 17px;
+  width: 19px;
+  height: 19px;
   filter: grayscale(1) opacity(0.45);
   transition: filter 0.2s ease;
 }
@@ -1045,14 +1045,15 @@ button {
   flex: 1;
   min-width: 0;
   margin-top: 8px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border-top-left-radius: 3px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border-top-left-radius: 4px;
   background: #fff;
 }
 .fs-bubble-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
+  line-height: 1.45;
   color: var(--ink);
 }
 .fs-bubble-text {
@@ -1077,14 +1078,14 @@ button {
 
 /* советы — каждый отдельной FAQ-карточкой, плавное раскрытие */
 .fs-tips {
-  margin-top: 16px;
+  margin-top: 18px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 .fs-tip {
   background: #fff;
-  border-radius: 18px;
+  border-radius: 20px;
   overflow: hidden;
   transition: border-radius 0.3s cubic-bezier(0.22, 0.8, 0.36, 1);
 }
@@ -1096,12 +1097,12 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--ink);
   text-align: left;
@@ -1124,8 +1125,8 @@ button {
 }
 .fs-tip-inner p {
   margin: 0;
-  padding: 0 16px 14px;
-  font-size: 11.5px;
+  padding: 0 18px 16px;
+  font-size: 13px;
   line-height: 1.6;
   color: var(--muted);
 }
@@ -1147,11 +1148,11 @@ button {
 
 /* оценка результата: «спасибо» висит пару секунд, затем блок мягко складывается */
 .fs-feedback {
-  margin-top: 16px;
+  margin-top: 18px;
   background: #fff;
   border-radius: 20px;
-  min-height: 62px;
-  padding: 10px 16px;
+  min-height: 72px;
+  padding: 11px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1170,22 +1171,22 @@ button {
 .fs-feedback-thanks {
   width: 100%;
   text-align: center;
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--ink);
 }
 .fs-feedback-q {
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--ink);
 }
 .fs-feedback-btns {
   display: flex;
-  gap: 14px;
+  gap: 16px;
 }
 .fs-feedback-btns button {
-  width: 44px;
-  height: 44px;
+  width: 50px;
+  height: 50px;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -1217,20 +1218,20 @@ button {
 
 .fs-note {
   margin-top: 16px;
-  font-size: 9.5px;
+  font-size: 11px;
   color: var(--muted);
   text-align: center;
 }
 
 .fs-cta {
-  margin-top: 16px;
+  margin-top: 18px;
   width: 100%;
-  height: 45px;
+  height: 52px;
   border: 0;
-  border-radius: 20px;
+  border-radius: 24px;
   background: var(--brand);
   color: #fff;
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -1239,6 +1240,6 @@ button {
   cursor: pointer;
 }
 .fs-cta img {
-  width: 19px;
-  height: 19px;
+  width: 21px;
+  height: 21px;
 }
