@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import flame from "./assets/flame.svg";
 import droplet from "./assets/droplet.svg";
 import scanFrame from "./assets/scan-frame.svg";
-import { useStore, addMeal } from "./store";
+import { useStore, addMeal, bumpCelebrate, takeCelebrate } from "./store";
 import { Gauge } from "./components/Gauge";
 import { CameraView } from "./components/CameraView";
 import { ResultPage } from "./components/ResultPage";
@@ -88,18 +88,77 @@ function YearCard({ months }: { months: ReturnType<typeof useStore>["months"] })
   );
 }
 
-function CalorieCard() {
-  const { today, goals } = useStore();
-  const pct = today.kcal / goals.kcal;
-  const left = Math.max(0, goals.kcal - today.kcal);
+const CELEBRATE_COUNT_MS = 1150;
+
+function CalorieCard({ celebrate }: { celebrate: number }) {
+  const { today, goals, meals } = useStore();
+  const [shown, setShown] = useState<number | null>(null); // анимируемая цифра
+  const [phase, setPhase] = useState<"idle" | "pulse" | "check" | "done">("idle");
+
+  useEffect(() => {
+    if (!celebrate) return;
+    let raf = 0;
+    const timers: number[] = [];
+    /* старт через макрозадержку: StrictMode двойным монтом не обрывает анимацию */
+    const start = window.setTimeout(() => {
+      if (!takeCelebrate()) return;
+      const amount = meals.length ? meals[meals.length - 1].kcal : 0;
+      const from = Math.max(0, today.kcal - amount);
+      const to = today.kcal;
+      if (to <= from) return;
+      const t0 = performance.now();
+      setShown(from);
+      const tick = (t: number) => {
+        const k = Math.min(1, (t - t0) / CELEBRATE_COUNT_MS);
+        const e = 1 - Math.pow(2, -10 * k); // easeOutExpo: быстро стартует, мягко доезжает
+        setShown(from + (to - from) * e);
+        if (k < 1) {
+          raf = requestAnimationFrame(tick);
+        } else {
+          setShown(to);
+          setPhase("pulse"); // цифра подпрыгивает и подсвечивается
+          timers.push(window.setTimeout(() => setPhase("check"), 430)); // галочка с блюр-ореолом
+          timers.push(window.setTimeout(() => setPhase("done"), 2450)); // всё возвращается как было
+        }
+      };
+      raf = requestAnimationFrame(tick);
+    }, 60);
+    return () => {
+      clearTimeout(start);
+      cancelAnimationFrame(raf);
+      timers.forEach(clearTimeout);
+    };
+    // today/meals — снапшот на момент добавления, пересчитывать не нужно
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [celebrate]);
+
+  const v = shown ?? today.kcal;
+  const pct = v / goals.kcal;
   return (
     <section className="ccal">
       <h2 className="ccal-title">Калории</h2>
       <p className="ccal-sub">{Math.round(pct * 100)}% дневной цели</p>
       <Gauge className="ccal-gauge" pct={pct} />
-      <p className="ccal-num">{fmt(today.kcal)}</p>
+      <p className={"ccal-num" + (phase === "pulse" ? " pulse" : "")}>{fmt(Math.round(v))}</p>
       <p className="ccal-of">из {fmt(goals.kcal)} ккал</p>
-      <p className="ccal-left">{fmt(left)} ккал осталось</p>
+      {phase === "check" && (
+        <div className="ccal-check" aria-hidden="true">
+          <span>
+            <svg
+              viewBox="0 0 24 24"
+              width="15"
+              height="15"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 12.5 10 18 20 6.5" />
+            </svg>
+          </span>
+        </div>
+      )}
     </section>
   );
 }
@@ -180,7 +239,7 @@ function WeekCard() {
   );
 }
 
-function HomePage({ onScan }: { onScan(): void }) {
+function HomePage({ onScan, celebrate = 0 }: { onScan(): void; celebrate?: number }) {
   const { months } = useStore();
   // стрик: считаем подряд идущие активные дни в heatmap до сегодня
   let streak = 0;
@@ -197,7 +256,7 @@ function HomePage({ onScan }: { onScan(): void }) {
         <span>Твой ритм дня</span>
       </div>
       <div className="orow">
-        <CalorieCard />
+        <CalorieCard celebrate={celebrate} />
         <WaterCard />
       </div>
       <div className="mrow">
@@ -216,6 +275,15 @@ export default function App() {
   const [page, setPage] = useState<"home" | "camera" | "result">("home");
   const [ghost, setGhost] = useState<"home" | "camera" | "result" | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
+  const [celebrate, setCelebrate] = useState(0);
+  const { meals } = useStore();
+
+  /* еда добавлена → главная при монтировании отыграет анимацию заливки */
+  const prevMeals = useRef(meals.length);
+  useEffect(() => {
+    if (meals.length > prevMeals.current) bumpCelebrate();
+    prevMeals.current = meals.length;
+  }, [meals.length]);
 
   /* плавный переход: уходящая страница доигрывает анимацию поверх */
   const go = (next: "home" | "camera" | "result", p?: string | null) => {
@@ -238,7 +306,7 @@ export default function App() {
     <div className="phone">
       {page === "home" && (
         <div className="page-in" key="home">
-          <HomePage onScan={() => go("camera")} />
+          <HomePage onScan={() => go("camera")} celebrate={celebrate} />
         </div>
       )}
       {page === "camera" && (
@@ -253,7 +321,7 @@ export default function App() {
       {ghost && ghost !== "camera" && (
         <div className="page-out" aria-hidden="true">
           {ghost === "home" ? (
-            <HomePage onScan={() => undefined} />
+            <HomePage onScan={() => undefined} celebrate={0} />
           ) : (
             <ResultPage photo={photo} onBack={() => undefined} />
           )}

@@ -51,6 +51,21 @@ export function useStore(): AppState {
   return useSyncExternalStore(subscribe, () => state, () => state);
 }
 
+/* Празднование добавления еды: seq-счётчик для анимации на главной.
+ * CalorieCard «отыгрывает» pending и отмечает — повторные монты не переигрывают. */
+let celebrateSeq = 0;
+let celebratedSeq = 0;
+export function bumpCelebrate() {
+  celebrateSeq += 1;
+}
+export function takeCelebrate() {
+  if (celebrateSeq > celebratedSeq) {
+    celebratedSeq = celebrateSeq;
+    return true;
+  }
+  return false;
+}
+
 /* Добавить распознанное блюдо в «сегодня» (и в неделю), плюс лог в Supabase */
 export function addMeal(meal: MealEstimate) {
   const today: DayTotals = {
@@ -63,6 +78,7 @@ export function addMeal(meal: MealEstimate) {
   const week = state.week.map((d, i) =>
     i === 5 ? { ...d, kcal: today.kcal } : d // 5 = сегодня (суббота)
   );
+  bumpCelebrate();
   set({ today, week, meals: [...state.meals, meal] });
 
   void fetch("/api/meals", {
