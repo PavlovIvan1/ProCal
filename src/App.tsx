@@ -124,9 +124,9 @@ function WaterCard() {
 function MacrosCard() {
   const { today, goals } = useStore();
   const rows = [
-    { label: "Белки", value: `${today.protein} / ${goals.protein} г`, frac: today.protein / goals.protein, color: "#8a0027", top: 47, barTop: 66 },
-    { label: "Углеводы", value: `${today.carbs} / ${goals.carbs} г`, frac: today.carbs / goals.carbs, color: "#b76b80", top: 87, barTop: 106 },
-    { label: "Жиры", value: `${today.fat} / ${goals.fat} г`, frac: today.fat / goals.fat, color: "#d8aebb", top: 127, barTop: 146 },
+    { label: "Белки", value: `${today.protein} / ${goals.protein} г`, frac: today.protein / goals.protein, color: "#8a0027", top: 54, barTop: 74 },
+    { label: "Углеводы", value: `${today.carbs} / ${goals.carbs} г`, frac: today.carbs / goals.carbs, color: "#b76b80", top: 100, barTop: 120 },
+    { label: "Жиры", value: `${today.fat} / ${goals.fat} г`, frac: today.fat / goals.fat, color: "#d8aebb", top: 146, barTop: 166 },
   ];
   return (
     <section className="cmac">
@@ -205,7 +205,7 @@ function HomePage({ onScan }: { onScan(): void }) {
         <WeekCard />
       </div>
       <button className="scan" onClick={onScan}>
-        <FigIcon src={scanFrame.src} w={19} group="12.5%" img="-5.96%" />
+        <FigIcon src={scanFrame.src} w={21} group="12.5%" img="-5.96%" />
         Сканировать еду
       </button>
     </main>
