@@ -513,58 +513,28 @@ button {
   color: var(--brand);
 }
 
-/* ---- coach banner (scan entry point) ----
- * Светлая карточка в системе дизайна (как «Вода»): тёмный коуч читается
- * целиком, без белых кругов и обрезок. */
-.coachb {
-  position: relative;
-  height: 124px;
+/* ---- scan button ---- */
+.scan {
   margin-top: 18px;
-  background: var(--pink);
-  border-radius: 22px;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  transition: transform 0.16s ease;
-}
-.coachb:active {
-  transform: scale(0.98);
-}
-.coachb .fs-mascot {
-  position: absolute;
-  left: 14px;
-  bottom: 0; /* коуч стоит на «полу» карточки, ноги не обрезаем */
-}
-.coachb-title {
-  position: absolute;
-  left: 124px;
-  top: 30px;
-  font-size: 17.5px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-  color: var(--ink);
-}
-.coachb-sub {
-  position: absolute;
-  left: 124px;
-  top: 58px;
-  right: 74px;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--muted);
-}
-.coachb-go {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  width: 100%;
+  height: 56px;
+  border: 0;
+  border-radius: 24px;
   background: var(--brand);
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 9px;
+  cursor: pointer;
+  transition: transform 0.16s ease, filter 0.2s ease;
+}
+.scan:active {
+  transform: scale(0.97);
+  filter: brightness(0.92);
 }
 
 /* ---- скелетон распознавания ---- */
