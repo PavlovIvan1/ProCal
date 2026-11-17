@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import backIcon from "../assets/back.svg";
-import editIcon from "../assets/edit.svg";
 import addIcon from "../assets/add.svg";
 import burger from "../assets/burger.png";
 import coachArms from "../assets/coach-arms.svg";
@@ -19,11 +18,11 @@ function ThumbIcon({ down, on }: { down?: boolean; on?: boolean }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      width="21"
-      height="21"
+      width="23"
+      height="23"
       fill={on ? "currentColor" : "none"}
       stroke="currentColor"
-      strokeWidth="2.2"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
       style={down ? { transform: "rotate(180deg)" } : undefined}
@@ -70,8 +69,8 @@ function Mascot({ mad }: { mad: boolean }) {
   );
 }
 
-/* Совет-«FAQ»: раскрытие через замер реальной высоты — Safari анимирует
- * фиксированную height в px заметно плавнее, чем grid-template-rows */
+/* Совет-«FAQ»: анимируется ТОЛЬКО высота (замер scrollHeight в px).
+ * Никаких переходов текста/цвета внутри — поэтому ноль дёрганья. */
 function TipItem({ title, detail, open, onToggle }: { title: string; detail: string; open: boolean; onToggle(): void }) {
   const innerRef = useRef<HTMLDivElement>(null);
   const [h, setH] = useState(0);
@@ -81,7 +80,7 @@ function TipItem({ title, detail, open, onToggle }: { title: string; detail: str
   }, [open, detail]);
 
   return (
-    <div className={"fs-tip" + (open ? " open" : "")}>
+    <div className="fs-tip">
       <button className="fs-tip-head" onClick={onToggle}>
         <span>{title}</span>
         <Chevron />
@@ -100,18 +99,11 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
   const [mode, setMode] = useState<"angry" | "calm">("angry");
   const [openTip, setOpenTip] = useState<number | null>(0);
   const [fb, setFb] = useState<FeedbackKind | null>(null);
-  const [fbHiding, setFbHiding] = useState(false);
-  const [fbGone, setFbGone] = useState(false);
-  const fbRef = useRef<HTMLDivElement>(null);
-  const [fbH, setFbH] = useState<number | null>(null);
 
   useEffect(() => {
     let alive = true;
     setAnalysis(null);
     setFb(null);
-    setFbHiding(false);
-    setFbGone(false);
-    setFbH(null);
     setOpenTip(0);
     recognizeMeal(photo ?? "demo").then((a) => {
       if (alive) setAnalysis(a);
@@ -121,11 +113,6 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
     };
   }, [photo]);
 
-  /* высоту карточки замеряем пока она не начала уезжать */
-  useLayoutEffect(() => {
-    if (analysis && !fbHiding && fbRef.current) setFbH(fbRef.current.scrollHeight);
-  }, [analysis, fb, fbHiding]);
-
   const meal: MealEstimate | null = analysis?.meal ?? null;
   const bars = meal ? macroBars(meal) : [];
   const quote = analysis ? (mode === "angry" ? analysis.coach : analysis.coachCalm) : "";
@@ -134,9 +121,6 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
     if (!analysis) return;
     setFb(kind);
     sendFeedback(kind, analysis.meal.name, analysis.meal.kcal, analysis.coach);
-    // «спасибо» на миг, затем карточка плавно складывается по своей реальной высоте
-    window.setTimeout(() => setFbHiding(true), 1100);
-    window.setTimeout(() => setFbGone(true), 1600);
   };
 
   return (
@@ -155,36 +139,31 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
       <div className="fs-sheet">
         {meal && analysis ? (
           <>
+            {/* название слева, ккал справа — вместо иконки «изменить» */}
             <div className="fs-id">
-              <h2>{meal.name}</h2>
+              <div className="fs-id-row">
+                <h2>{meal.name}</h2>
+                <span className="fs-id-kcal">
+                  {meal.kcal}
+                  <em>ккал</em>
+                </span>
+              </div>
               <p className="fs-id-sub">{meal.sub}</p>
-              <button className="fs-id-edit" aria-label="Изменить детали">
-                <img src={editIcon.src} alt="" />
-              </button>
             </div>
 
-            {/* калории + БЖУ одной минималистичной строкой */}
-            <div className="fs-line">
-              <span className="fs-line-kcal">
-                {meal.kcal}
-                <em>ккал</em>
-              </span>
-              <span className="fs-line-chips">
-                <span className="fs-chip">
-                  <i style={{ background: "#8a0027" }} />
-                  Белки {meal.protein} г
+            {/* БЖУ: сетка из трёх колонок, чистый текст */}
+            <div className="fs-macros">
+              {bars.map((b, i) => (
+                <span className="fs-mcell" key={b.label}>
+                  {i > 0 && <span className="fs-mcell-sep" />}
+                  <span className="fs-mcell-label">{b.label}</span>
+                  <span className="fs-mcell-val">
+                    {b.value.replace(" г", "")}
+                    <em> г</em>
+                  </span>
                 </span>
-                <span className="fs-chip">
-                  <i style={{ background: "#b76b80" }} />
-                  Углеводы {meal.carbs} г
-                </span>
-                <span className="fs-chip">
-                  <i style={{ background: "#d8aebb" }} />
-                  Жиры {meal.fat} г
-                </span>
-              </span>
+              ))}
             </div>
-            <p className="fs-line-note">≈ оценка по фото, можно поправить вручную</p>
 
             <section className="fs-coach">
               <div className="fs-coach-head">
@@ -230,62 +209,53 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
               </div>
             )}
 
-            {!fbGone && (
-              <div
-                ref={fbRef}
-                className={"fs-feedback" + (fbHiding ? " hiding" : "")}
-                style={
-                  fbHiding
-                    ? { height: 0, opacity: 0 }
-                    : fbH != null
-                      ? { height: fbH }
-                      : undefined
-                }
-              >
-                <div className="fs-feedback-main">
+            {/* оценка: после голоса вопрос и кнопки мягко сменяются строкой «спасибо» на том же месте */}
+            <div className="fs-feedback">
+              {fb ? (
+                <p className="fs-feedback-thanks fs-swap" key="thanks">
+                  {fb === "up" ? "Спасибо, учтём!" : "Учёл, поработаем над точностью."}
+                </p>
+              ) : (
+                <>
                   <p className="fs-feedback-q">Понравилась оценка блюда?</p>
-                  {fb && (
-                    <p className="fs-feedback-thanks fs-swap" key="fb">
-                      {fb === "up" ? "Спасибо, учтём!" : "Понял, поработаю над точностью."}
-                    </p>
-                  )}
-                </div>
-                <div className="fs-feedback-btns">
-                  <button className={fb === "up" ? "on up" : ""} onClick={() => rate("up")} aria-label="Понравилось">
-                    <ThumbIcon on={fb === "up"} />
-                  </button>
-                  <button className={fb === "down" ? "on down" : ""} onClick={() => rate("down")} aria-label="Не понравилось">
-                    <ThumbIcon down on={fb === "down"} />
-                  </button>
-                </div>
-              </div>
-            )}
-            {fbGone && (
-              <p className="fs-feedback-done fs-swap">
-                {fb === "up" ? "Спасибо, учтём!" : "Учёл. Точность оценок улучшим."}
-              </p>
-            )}
+                  <div className="fs-feedback-btns">
+                    <button className={fb === "up" ? "on" : ""} onClick={() => rate("up")} aria-label="Понравилось">
+                      <ThumbIcon on={fb === "up"} />
+                    </button>
+                    <button className={fb === "down" ? "on" : ""} onClick={() => rate("down")} aria-label="Не понравилось">
+                      <ThumbIcon down on={fb === "down"} />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
 
             <button className="fs-cta" onClick={() => { addMeal(meal); onBack(); }}>
               Добавить в обед
               <img src={addIcon.src} alt="" />
             </button>
+
+            <p className="fs-note">Оценка по фото может отличаться. Точность растёт с каждым сканом.</p>
           </>
         ) : (
           <>
             <div className="fs-id">
-              <h2 className="sk sk-line" style={{ width: "62%" }} />
+              <div className="fs-id-row">
+                <h2 className="sk sk-line" style={{ width: "55%" }} />
+                <span className="sk sk-line" style={{ width: 70, height: 14 }} />
+              </div>
               <p className="fs-id-sub">
                 <span className="sk sk-line" style={{ width: "70%" }} />
               </p>
             </div>
-            <div className="fs-line">
-              <span className="fs-line-kcal sk sk-line" style={{ width: 90, height: 22 }} />
-              <span className="fs-line-chips">
-                {[0, 1, 2].map((i) => (
-                  <span className="fs-chip sk sk-line" key={i} style={{ width: 92, height: 14 }} />
-                ))}
-              </span>
+            <div className="fs-macros">
+              {[0, 1, 2].map((i) => (
+                <span className="fs-mcell" key={i}>
+                  {i > 0 && <span className="fs-mcell-sep" />}
+                  <span className="sk sk-line" style={{ width: 46, height: 10 }} />
+                  <span className="sk sk-line" style={{ width: 40, height: 13 }} />
+                </span>
+              ))}
             </div>
             <div className="fs-tips">
               {[0, 1].map((i) => (
