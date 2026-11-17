@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import backIcon from "../assets/back.svg";
 import addIcon from "../assets/add.svg";
 import burger from "../assets/burger.png";
@@ -99,28 +99,48 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
   const [mode, setMode] = useState<"angry" | "calm">("angry");
   const [openTip, setOpenTip] = useState<number | null>(0);
   const [fb, setFb] = useState<FeedbackKind | null>(null);
+  const [stage, setStage] = useState<"ask" | "thanks" | "closing" | "gone">("ask");
+  const fbRef = useRef<HTMLDivElement>(null);
+  const [fbH, setFbH] = useState<number | null>(null);
+  const timers = useRef<number[]>([]);
 
   useEffect(() => {
     let alive = true;
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
     setAnalysis(null);
     setFb(null);
+    setStage("ask");
+    setFbH(null);
     setOpenTip(0);
     recognizeMeal(photo ?? "demo").then((a) => {
       if (alive) setAnalysis(a);
     });
     return () => {
       alive = false;
+      timers.current.forEach(clearTimeout);
     };
   }, [photo]);
+
+  /* высоту блока замеряем, пока он ещё не начал уезжать */
+  useLayoutEffect(() => {
+    if (stage !== "closing" && stage !== "gone" && fbRef.current) {
+      setFbH(fbRef.current.scrollHeight);
+    }
+  }, [stage, fb, analysis]);
 
   const meal: MealEstimate | null = analysis?.meal ?? null;
   const bars = meal ? macroBars(meal) : [];
   const quote = analysis ? (mode === "angry" ? analysis.coach : analysis.coachCalm) : "";
 
   const rate = (kind: FeedbackKind) => {
-    if (!analysis) return;
+    if (!analysis || stage !== "ask") return;
     setFb(kind);
     sendFeedback(kind, analysis.meal.name, analysis.meal.kcal, analysis.coach);
+    // юзер видит нажатую (залитую) кнопку → «спасибо» → блок мягко уезжает
+    timers.current.push(window.setTimeout(() => setStage("thanks"), 1700));
+    timers.current.push(window.setTimeout(() => setStage("closing"), 4900));
+    timers.current.push(window.setTimeout(() => setStage("gone"), 5400));
   };
 
   return (
@@ -154,14 +174,16 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
             {/* БЖУ: сетка из трёх колонок, чистый текст */}
             <div className="fs-macros">
               {bars.map((b, i) => (
-                <span className="fs-mcell" key={b.label}>
-                  {i > 0 && <span className="fs-mcell-sep" />}
-                  <span className="fs-mcell-label">{b.label}</span>
-                  <span className="fs-mcell-val">
-                    {b.value.replace(" г", "")}
-                    <em> г</em>
+                <Fragment key={b.label}>
+                  {i > 0 && <span className="fs-msep" />}
+                  <span className="fs-mcell">
+                    <span className="fs-mcell-label">{b.label}</span>
+                    <span className="fs-mcell-val">
+                      {b.value.replace(" г", "")}
+                      <em> г</em>
+                    </span>
                   </span>
-                </span>
+                </Fragment>
               ))}
             </div>
 
@@ -209,26 +231,42 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
               </div>
             )}
 
-            {/* оценка: после голоса вопрос и кнопки мягко сменяются строкой «спасибо» на том же месте */}
-            <div className="fs-feedback">
-              {fb ? (
-                <p className="fs-feedback-thanks fs-swap" key="thanks">
-                  {fb === "up" ? "Спасибо, учтём!" : "Учёл, поработаем над точностью."}
-                </p>
-              ) : (
-                <>
-                  <p className="fs-feedback-q">Понравилась оценка блюда?</p>
-                  <div className="fs-feedback-btns">
-                    <button className={fb === "up" ? "on" : ""} onClick={() => rate("up")} aria-label="Понравилось">
-                      <ThumbIcon on={fb === "up"} />
-                    </button>
-                    <button className={fb === "down" ? "on" : ""} onClick={() => rate("down")} aria-label="Не понравилось">
-                      <ThumbIcon down on={fb === "down"} />
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
+            {/* оценка: нажал → видна заливка на кнопке → «спасибо» → блок мягко уезжает */}
+            {stage !== "gone" && (
+              <div
+                ref={fbRef}
+                className={
+                  "fs-feedback" +
+                  (stage === "thanks" ? " thanks" : "") +
+                  (stage === "closing" ? " closing" : "")
+                }
+                style={
+                  stage === "closing"
+                    ? { height: 0, opacity: 0 }
+                    : fbH != null
+                      ? { height: fbH }
+                      : undefined
+                }
+              >
+                {stage === "ask" ? (
+                  <>
+                    <p className="fs-feedback-q">Понравилась оценка блюда?</p>
+                    <div className="fs-feedback-btns">
+                      <button className={fb === "up" ? "on" : ""} onClick={() => rate("up")} aria-label="Понравилось">
+                        <ThumbIcon on={fb === "up"} />
+                      </button>
+                      <button className={fb === "down" ? "on" : ""} onClick={() => rate("down")} aria-label="Не понравилось">
+                        <ThumbIcon down on={fb === "down"} />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <p className="fs-feedback-thanks fs-swap" key={fb}>
+                    {fb === "up" ? "Спасибо, учтём!" : "Учёл, поработаем над точностью."}
+                  </p>
+                )}
+              </div>
+            )}
 
             <button className="fs-cta" onClick={() => { addMeal(meal); onBack(); }}>
               Добавить в обед
@@ -250,11 +288,13 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
             </div>
             <div className="fs-macros">
               {[0, 1, 2].map((i) => (
-                <span className="fs-mcell" key={i}>
-                  {i > 0 && <span className="fs-mcell-sep" />}
-                  <span className="sk sk-line" style={{ width: 46, height: 10 }} />
-                  <span className="sk sk-line" style={{ width: 40, height: 13 }} />
-                </span>
+                <Fragment key={i}>
+                  {i > 0 && <span className="fs-msep" />}
+                  <span className="fs-mcell">
+                    <span className="sk sk-line" style={{ width: 46, height: 10 }} />
+                    <span className="sk sk-line" style={{ width: 40, height: 13 }} />
+                  </span>
+                </Fragment>
               ))}
             </div>
             <div className="fs-tips">
