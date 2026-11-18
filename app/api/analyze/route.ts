@@ -7,6 +7,7 @@ const POLZA_URL = "https://polza.ai/api/v1/chat/completions";
 interface Tip {
   title: string;
   detail: string;
+  badge?: string;
 }
 
 interface Analysis {
@@ -64,7 +65,11 @@ function extractJson(text: string): Analysis | null {
         ? raw.tips
             .filter((t: unknown): t is Tip => !!t && typeof (t as Tip).title === "string")
             .slice(0, 3)
-            .map((t: Tip) => ({ title: t.title, detail: String(t.detail ?? "") }))
+            .map((t: Tip) => ({
+              title: t.title,
+              detail: String(t.detail ?? ""),
+              ...(typeof t.badge === "string" && t.badge ? { badge: t.badge } : {}),
+            }))
         : [],
     };
   } catch {
@@ -122,14 +127,54 @@ function mockAnalysis(): Analysis {
   };
 }
 
+/* Тестовый скан из демо-видео — фиксированный разбор, чтобы показать
+ * на реальном кадре то, как выглядит полноценный ответ. */
+const DEMO_ANALYSIS: Analysis = {
+  meal: {
+    name: "Гречка, рыба в панировке и две котлеты",
+    sub: "Плотный приём: белок и сложные углеводы",
+    kcal: 650,
+    protein: 42,
+    carbs: 53,
+    fat: 29,
+  },
+  coach:
+    "Ты зачем на завтрак объединил обед и ужин? Белка здесь на целого качка, но ни одного овоща — кишечник передаёт привет из пустыни Сахара.",
+  coachCalm:
+    "42 г белка и сложные углеводы из гречки дадут энергию до вечера, но сочетание жареной панировки и котлет тянет на 29 г жиров за раз.",
+  tips: [
+    {
+      badge: "+ Клетчатка",
+      title: "Добавь свежий салат или огурец",
+      detail:
+        "В тарелке много плотного белка (рыба + мясо) и ноль сырых овощей. Пара огурцов, помидор или горсть зелени замедлят скачок сахара и помогут желудку переварить этот белковый удар без тяжести.",
+    },
+    {
+      badge: "Баланс жиров",
+      title: "Раздели рыбу и котлеты",
+      detail:
+        "Ты получил сразу 42 г белка — это круто, но для одного приёма пищи с запасом. Если оставить на завтрак только рыбу с гречкой, а котлеты перенести на обед, ты сэкономишь ~270 ккал и уберёшь лишние насыщенные жиры.",
+    },
+    {
+      badge: "Минус 70 ккал",
+      title: "Осторожнее с панировкой",
+      detail:
+        "Сама белая рыба — диетический продукт, но корочка при жарке впитывает масло как губка. В следующий раз сними верхнюю корочку или запеки рыбу без муки — вкус останется, а жиров станет вдвое меньше.",
+    },
+  ],
+};
+
 export async function POST(req: Request) {
   let image = "";
+  let demo = false;
   try {
     const body = await req.json();
     image = typeof body?.image === "string" ? body.image : "";
+    demo = body?.demo === true;
   } catch {
     // пустой image → мок ниже
   }
+  if (demo) return Response.json(DEMO_ANALYSIS);
   const analysis = (image && (await askPolza(image))) || mockAnalysis();
   return Response.json(analysis);
 }

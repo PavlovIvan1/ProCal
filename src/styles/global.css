@@ -734,6 +734,30 @@ button {
   transform: scale(0.9);
   background: rgba(255, 255, 255, 0.26);
 }
+/* переключатель «камера / демо-видео»: один тап туда-обратно */
+.cam-mode {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: transform 0.16s ease, background 0.2s ease;
+}
+.cam-mode:active {
+  transform: scale(0.94);
+}
+.cam-mode.on {
+  background: var(--brand);
+}
 .cam-center {
   position: absolute;
   left: 0;
@@ -1169,6 +1193,22 @@ button {
   flex: none;
   color: var(--muted);
   transition: transform 0.32s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+.fs-tip-title {
+  min-width: 0;
+}
+.fs-tip-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--pink);
+  color: var(--brand);
+  font-style: normal;
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: 1px;
 }
 .fs-tip-head:active {
   transform: scale(0.985);

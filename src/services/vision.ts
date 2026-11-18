@@ -7,6 +7,7 @@ import { MOCK_MEALS } from "../data/mock";
 export interface Tip {
   title: string; // «Добавь салата» — нормальный тон
   detail: string; // раскрытие: ингредиенты / как сделать
+  badge?: string; // короткая метка-чипс, напр. «+ Клетчатка»
 }
 
 export interface Analysis {
@@ -25,10 +26,16 @@ export interface Analysis {
 
 async function analyze(photo: string): Promise<Analysis | null> {
   try {
+    let demo = false;
+    try {
+      demo = sessionStorage.getItem("procalDemoScan") === "1";
+    } catch {
+      // приватный режим — без флага
+    }
     const res = await fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image: photo }),
+      body: JSON.stringify({ image: photo, demo }),
     });
     if (!res.ok) return null;
     const data = await res.json();

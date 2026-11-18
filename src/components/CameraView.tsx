@@ -1,17 +1,53 @@
 import { useEffect, useRef, useState } from "react";
 
-/** Fullscreen camera view: corner viewfinder + shutter. Falls back to a mock
- *  viewfinder when no camera is available, the flow still works. */
+/* Демо-режим: вместо камеры крутится записанное видео, а затвор вырезает
+ * из него квадрат строго по рамке. Флаг в sessionStorage говорит бэкенду,
+ * что это тестовый скан (мок-описание). Обычный снимок флаг сбрасывает. */
+const DEMO_VIDEO = "/demo/meal.mp4";
+const DEMO_FLAG = "procalDemoScan";
+
 export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(photo: string | null): void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState(false);
+  const [demo, setDemo] = useState(false);
   const [flash, setFlash] = useState(false);
   const [shot, setShot] = useState<string | null>(null);
 
   useEffect(() => {
-    let stream: MediaStream | undefined;
+    const v = videoRef.current;
     let cancelled = false;
+
+    if (demo) {
+      // тестовый режим: отпускаем камеру и играем видео по кругу
+      setLive(false);
+      if (v) {
+        v.srcObject = null;
+        v.src = DEMO_VIDEO;
+        v.loop = true;
+        v.muted = true;
+        v.play().catch(() => {});
+      }
+      const onReady = () => {
+        if (!cancelled) setLive(true);
+      };
+      v?.addEventListener("loadeddata", onReady);
+      v?.addEventListener("playing", onReady);
+      return () => {
+        cancelled = true;
+        v?.removeEventListener("loadeddata", onReady);
+        v?.removeEventListener("playing", onReady);
+      };
+    }
+
+    // обычная камера
+    let stream: MediaStream | undefined;
+    setLive(false);
+    if (v) {
+      v.removeAttribute("src");
+      v.srcObject = null;
+      v.load();
+    }
     const request = navigator.mediaDevices?.getUserMedia({
       video: {
         facingMode: "environment",
@@ -27,10 +63,10 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
           return;
         }
         stream = s;
-        const v = videoRef.current;
-        if (v) {
-          v.srcObject = s;
-          v.play().catch(() => {});
+        const vv = videoRef.current;
+        if (vv) {
+          vv.srcObject = s;
+          vv.play().catch(() => {});
         }
         setLive(true);
       })
@@ -39,11 +75,16 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
       cancelled = true;
       stream?.getTracks().forEach((t) => t.stop());
     };
-  }, []);
+  }, [demo]);
 
   /* Финал скана: вспышка + «заморозка» кадра прямо в рамке, потом переход */
   const finish = (url: string | null) => {
     if (!url) {
+      try {
+        sessionStorage.setItem(DEMO_FLAG, "0");
+      } catch {
+        // приватный режим
+      }
       onCapture(null);
       return;
     }
@@ -105,6 +146,11 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
         if (alt && (result == null || alt.ok)) result = alt;
       }
       if (result) {
+        try {
+          sessionStorage.setItem(DEMO_FLAG, demo ? "1" : "0");
+        } catch {
+          // приватный режим — просто без флага
+        }
         finish(result.canvas.toDataURL("image/jpeg", 0.9));
         return;
       }
@@ -114,9 +160,16 @@ export function CameraView({ onClose, onCapture }: { onClose(): void; onCapture(
 
   return (
     <div className="cam">
-      <video ref={videoRef} playsInline muted />
+      <video ref={videoRef} playsInline muted loop />
       {!live && <div className="cam-fallback" />}
       {flash && <div className="cam-flash" />}
+      <button
+        className={"cam-mode" + (demo ? " on" : "")}
+        onClick={() => setDemo((d) => !d)}
+        aria-label={demo ? "Вернуться к камере" : "Включить демо-видео"}
+      >
+        {demo ? "Камера" : "Демо"}
+      </button>
       <button className="cam-close" onClick={onClose} aria-label="Закрыть камеру">
         <svg viewBox="0 0 20 20" width="18" height="18">
           <path

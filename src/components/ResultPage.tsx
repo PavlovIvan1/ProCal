@@ -38,7 +38,7 @@ function Chevron() {
 
 /* Совет-«FAQ»: анимируется ТОЛЬКО высота (замер scrollHeight в px).
  * Никаких переходов текста/цвета внутри — поэтому ноль дёрганья. */
-function TipItem({ title, detail, open, onToggle }: { title: string; detail: string; open: boolean; onToggle(): void }) {
+function TipItem({ title, detail, badge, open, onToggle }: { title: string; detail: string; badge?: string; open: boolean; onToggle(): void }) {
   const innerRef = useRef<HTMLDivElement>(null);
   const [h, setH] = useState(0);
 
@@ -49,7 +49,10 @@ function TipItem({ title, detail, open, onToggle }: { title: string; detail: str
   return (
     <div className="fs-tip">
       <button className="fs-tip-head" onClick={onToggle}>
-        <span>{title}</span>
+        <span className="fs-tip-title">
+          {title}
+          {badge && <em className="fs-tip-badge">{badge}</em>}
+        </span>
         <Chevron />
       </button>
       <div className="fs-tip-body" style={{ height: open ? h : 0 }}>
@@ -191,6 +194,7 @@ export function ResultPage({ photo, onBack }: { photo: string | null; onBack(): 
                     key={t.title + i}
                     title={t.title}
                     detail={t.detail}
+                    badge={t.badge}
                     open={openTip === i}
                     onToggle={() => setOpenTip(openTip === i ? null : i)}
                   />
