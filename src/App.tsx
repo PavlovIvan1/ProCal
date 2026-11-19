@@ -93,7 +93,7 @@ const CELEBRATE_COUNT_MS = 1150;
 function CalorieCard({ celebrate }: { celebrate: number }) {
   const { today, goals, meals } = useStore();
   const [shown, setShown] = useState<number | null>(null); // анимируемая цифра
-  const [phase, setPhase] = useState<"idle" | "pulse" | "check" | "done">("idle");
+  const [phase, setPhase] = useState<"idle" | "pulse">("idle");
 
   useEffect(() => {
     if (!celebrate) return;
@@ -117,8 +117,7 @@ function CalorieCard({ celebrate }: { celebrate: number }) {
         } else {
           setShown(to);
           setPhase("pulse"); // цифра подпрыгивает и подсвечивается
-          timers.push(window.setTimeout(() => setPhase("check"), 430)); // галочка с блюр-ореолом
-          timers.push(window.setTimeout(() => setPhase("done"), 2450)); // всё возвращается как было
+          timers.push(window.setTimeout(() => setPhase("idle"), 900));
         }
       };
       raf = requestAnimationFrame(tick);
@@ -134,6 +133,8 @@ function CalorieCard({ celebrate }: { celebrate: number }) {
 
   const v = shown ?? today.kcal;
   const pct = v / goals.kcal;
+  /* цель дня закрыта — галочка живёт в углу карточки, а не мигает внизу */
+  const reached = v >= goals.kcal;
   return (
     <section className="ccal">
       <h2 className="ccal-title">Калории</h2>
@@ -141,13 +142,13 @@ function CalorieCard({ celebrate }: { celebrate: number }) {
       <Gauge className="ccal-gauge" pct={pct} />
       <p className={"ccal-num" + (phase === "pulse" ? " pulse" : "")}>{fmt(Math.round(v))}</p>
       <p className="ccal-of">из {fmt(goals.kcal)} ккал</p>
-      {phase === "check" && (
+      {reached && (
         <div className="ccal-check" aria-hidden="true">
           <span>
             <svg
               viewBox="0 0 24 24"
-              width="15"
-              height="15"
+              width="14"
+              height="14"
               fill="none"
               stroke="currentColor"
               strokeWidth="3"

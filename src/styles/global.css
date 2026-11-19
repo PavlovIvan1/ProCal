@@ -334,27 +334,29 @@ button {
 }
 .ccal-check {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 164px;
-  display: flex;
-  justify-content: center;
+  right: 14px;
+  top: 13px;
+  width: 26px;
+  height: 26px;
 }
 .ccal-check::before {
   content: "";
   position: absolute;
-  width: 88px;
-  height: 30px;
-  border-radius: 15px;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
   background: #fff;
-  filter: blur(16px);
-  opacity: 0.55;
+  filter: blur(12px);
+  opacity: 0.35;
   animation: checkGlow 0.45s ease both;
 }
 .ccal-check span {
   position: relative;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: #fff;
   color: var(--brand);
@@ -378,7 +380,7 @@ button {
     opacity: 0;
   }
   100% {
-    opacity: 0.55;
+    opacity: 0.35;
   }
 }
 
